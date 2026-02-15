@@ -1,0 +1,38 @@
+//- -
+//-   var textList = [
+//-     {
+//-       text: "",
+//-       tag: ""
+//-     }
+//-     {
+//-       text: [] || "",
+//-       tag: "span"
+//-     }
+//-   ]
+
+
+mixin textWithTags(textList)
+  each textListItem in textList
+    case textListItem.tag 
+      when ""
+        | #{textListItem.text}
+      when "i"
+        i #{textListItem.text}
+      when "span"
+        span 
+          +textWithTags(textListItem.text)
+      when "b"
+        b #{textListItem.text}
+      when "div"
+        div 
+          +textWithTags(textListItem.text)
+      when "ul"
+        ul
+         +textWithTags(textListItem.text)
+      when "li"
+        li
+          +textWithTags(textListItem.text)
+      when "br"
+        br
+      default
+        | #{textListItem.text}

@@ -1,0 +1,159 @@
+-
+  var COLOR_DESCRIPTING = {
+    "black-silver-mat": "Черная карта серебряная гравировка",
+    "black-gold-mat": "Черная карта золотая гравировка",
+    "gold-mat": "Золотая карта",
+    "red": "Красная карта",
+    
+    "blue": "Синяя карта",
+    "chameleon": "Хамелеон",
+  }
+
+  const DELEVERY_DESCRIPTING = {
+    "delivery" : "Доставка по Вилоятам Узбекистана",
+    "delivery-yandex" : "Доставка через Яндекс Такси",
+    "pickup" : "Самовывоз"
+  }
+
+
+
+doctype html
+html(lang='ru')
+  head
+    meta(charset="UTF-8")
+    meta(http-equiv="X-UA-Compatible", content="IE=edge")
+    meta(name="viewport", content="width=device-width, initial-scale=1.0")
+
+    meta(name="facebook-domain-verification" content="bd1qy6hoqnatx50dekig5hjn6q5j7v")
+
+    title MetalCards - состояние заказа #{order["id"]}
+    
+    link(rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png")
+    link(rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png")
+    link(rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png")
+    link(rel="manifest" href="/site.webmanifest")
+    meta(name="msapplication-TileColor" content="#da532c")
+    meta(name="theme-color" content="#ffffff")
+    
+    link(rel="stylesheet", href="/orders/showDataNew.css?ver=16")
+
+    style
+      | @font-face {
+      |     font-family: "Gilroy";
+      |     src: url('/fonts/gilroy-light.woff2') format('woff2'),
+      |         url('/fonts/gilroy-light.woff') format('woff'),
+      |         url('/fonts/gilroy-light.ttf') format('truetype');
+      |     font-weight: 300;
+      |     font-style: normal;
+      | }
+
+      | @font-face {
+      |     font-family: "Beware";
+      |     src: url('/fonts/beware-regular.woff2') format('woff2'),
+      |         url('/fonts/beware-regular.woff') format('woff'),
+      |         url('/fonts/beware-regular.ttf') format('truetype');
+      |     font-weight: 400;
+      |     font-style: normal;
+      | }
+    
+    style #{colorCSS}
+
+body
+  h1 Заказ #{order["id"]} (#{order["state"] == 2 ? "Оплачен" : order["state"] == 6 ? "Оплата наличными" : "Не оплачен"})
+
+  div
+    h2 Данные
+
+    p Имя: #{order["name"]}
+    p Номер телефона: #{order["phone"]}
+    p Доставка: #{DELEVERY_DESCRIPTING[order["delivery"]]}
+
+    if (order["state"] == 2)
+      p Заплачено: #{order["amount"]} сум
+    else
+      p К оплате: #{order["amount"]} сум
+      p Ваша карта будет готова, после того как вы оплатите
+
+    if (order["promo"])
+      p Промо-акция: #{order["promo"]}
+    
+
+  div 
+    h2 Дизайн
+    
+    p Чип: #{order["bigChip"] ? "Большой": "Маленький"}
+    p Логотип MetalCards: #{order["logoDeactive"] ? "Отсутствует" : "Присутствует"}
+    p Цвет карты: #{color.textRu}
+    //- p Дата заказа: #{order["create-time"]}
+    p Срок изготовления: 1-2 дня
+    p С вами свяжутся в ближайшее время
+
+  div.preview-card-cont
+    div(id="preview-card-a", class=`preview-card preview-card_${order["color"]} ${order["logoDeactive"] ? "preview-card_logo-deactive" : ""}`)
+      div.preview-card-img-cont 
+        | !{sideA}
+        picture
+          source(srcset=`${render}.webp` type="image/webp")
+          img(src=`${render}.png`)
+      img(src="/images/chip.svg", class=`preview-card-chip preview-card-chip_${order["bigChip"] ? "big" : "small"}`)
+
+    div(id="preview-card-b", class=`preview-card preview-card_${order["color"]} ${order["logoDeactive"] ? "preview-card_logo-deactive" : ""}`)
+      div.preview-card-img-cont !{sideB}
+      div.preview-card-magnetic-stripe
+      div.preview-card-signature-stripe
+      div.preview-card-logo
+
+  a.main-link(href="/")
+    img(src="/images/logo.svg", alt="Логотип")
+
+  <svg xmlns='http://www.w3.org/2000/svg' id="gold-gradient-svg" width='300%' height='300%'>
+    <defs>
+      <linearGradient id='gold-gradient' gradientUnits='userSpaceOnUse' x1='-10.36%' y1='25.06%' x2='110.36%' y2='74.94%'>
+        <stop stop-color='#D5AC52'/>
+        <stop offset='.963' stop-color='#EAD373'/>
+      </linearGradient>
+    </defs>
+  </svg>
+
+  <!-- Meta Pixel Code -->
+  <script>
+    | !function(f,b,e,v,n,t,s)
+    | {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    | n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+    | if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+    | n.queue=[];t=b.createElement(e);t.async=!0;
+    | t.src=v;s=b.getElementsByTagName(e)[0];
+    | s.parentNode.insertBefore(t,s)}(window, document,'script',
+    | 'https://connect.facebook.net/en_US/fbevents.js');
+    | fbq('init', '1176030859630983');
+    | fbq('track', 'PageView');
+    | fbq('track', 'Purchase', {currency: "USD", value: 4.00});
+  </script>
+  <noscript>
+    <img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=1176030859630983&ev=PageView&noscript=1"/>
+  </noscript>
+  <!-- End Meta Pixel Code -->
+  <!-- Yandex.Metrika counter -->
+  script
+    | (function(m,e,t,r,i,k,a){m[i]=m[i] || function () {
+    |   (m[i].a = m[i].a || []).push(arguments)
+    | };
+    |   m[i].l=1 * new Date();
+    |   for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
+    |   k=e.createElement(t), a = e.getElementsByTagName(t)[0], k.async = 1, k.src = r, a.parentNode.insertBefore(k, a)})
+    | (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+
+    | ym(96006193, "init", {
+    | clickmap:true,
+    |   trackLinks:true,
+    |   accurateTrackBounce:true,
+    |   webvisor:true
+    |   });
+  noscript
+    div
+      img(src="https://mc.yandex.ru/watch/96006193" style="position:absolute; left:-9999px;" alt="")
+  <!-- /Yandex.Metrika counter -->
+
+
+
+

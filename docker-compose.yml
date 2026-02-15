@@ -1,0 +1,13 @@
+services:
+  frontend-next:
+    build:
+      context: .
+      dockerfile: frontend-next/Dockerfile
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./metalcards_site-main:/app/metalcards_site-main:ro
+    environment:
+      NEXT_TELEMETRY_DISABLED: "1"
+      NODE_OPTIONS: ""
+    restart: unless-stopped

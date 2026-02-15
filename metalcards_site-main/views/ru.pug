@@ -1,0 +1,112 @@
+
+include ./templates/ru-header
+include ./templates/footer
+
+- var queryComplete = query ? query : ""
+
+doctype html
+html(lang='ru')
+  head
+    meta(charset="UTF-8")
+    meta(http-equiv="X-UA-Compatible", content="IE=edge")
+    meta(name="viewport", content="width=device-width, initial-scale=1.0")
+
+    meta(name="facebook-domain-verification" content="bd1qy6hoqnatx50dekig5hjn6q5j7v")
+
+    title MetalCards
+    
+    link(rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png")
+    link(rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png")
+    link(rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png")
+    link(rel="manifest" href="/site.webmanifest")
+    meta(name="msapplication-TileColor" content="#da532c")
+    meta(name="theme-color" content="#ffffff")
+    
+    link(rel="stylesheet", href="/ru4.css")
+
+    style
+      | @font-face {
+      |     font-family: "Gilroy";
+      |     src: url('/fonts/gilroy-light.woff2') format('woff2'),
+      |         url('/fonts/gilroy-light.woff') format('woff'),
+      |         url('/fonts/gilroy-light.ttf') format('truetype');
+      |     font-weight: 300;
+      |     font-style: normal;
+      | }
+
+      | @font-face {
+      |     font-family: "Beware";
+      |     src: url('/fonts/beware-regular.woff2') format('woff2'),
+      |         url('/fonts/beware-regular.woff') format('woff'),
+      |         url('/fonts/beware-regular.ttf') format('truetype');
+      |     font-weight: 400;
+      |     font-style: normal;
+      | }
+
+body
+  h1.visually-hidden Главная страница
+
+  +header("main", "главная", queryComplete)
+
+  main.main
+    h2.main__header Металлические карты
+
+    picture 
+      source(type="image/webp" srcset="/images/main-card-1x.webp 1x, /images/main-card-2x.webp 2x")
+      img.main__pic(src="/images/main-card-1x.jpg" srcset="/images/main-card-1x.jpg 1x, /images/main-card-1x.jpg 2x" alt="Карта")
+
+    div.main__container
+      p.main__container-info
+        span MetalCards - это твой стиль, твой характер, твой имидж.
+        span Наша компания занимается гравировкой металлических платежных карт с уникальным дизайном.
+        span Прямо сейчас ты можешь создать собственный шедевр и получить элитную карту класса Premium.
+      
+      a.main__container-link(href="/design/ru/" + queryComplete)
+        span.main__container-link-inner
+          span.main__container-link-inner_dark
+            span попробуй
+
+          span.main__container-link-inner_white
+            span попробуй
+
+  +footer()
+
+  <script src="/ru4.js"></script>
+
+  <!-- Meta Pixel Code -->
+  script
+    | !function(f,b,e,v,n,t,s)
+    | {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    | n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+    | if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+    | n.queue=[];t=b.createElement(e);t.async=!0;
+    | t.src=v;s=b.getElementsByTagName(e)[0];
+    | s.parentNode.insertBefore(t,s)}(window, document,'script',
+    | 'https://connect.facebook.net/en_US/fbevents.js');
+    | fbq('init', '1176030859630983');
+    | fbq('track', 'PageView');
+
+  noscript
+    img(height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=1176030859630983&ev=PageView&noscript=1")
+  <!-- End Meta Pixel Code -->
+
+  <!-- Yandex.Metrika counter -->
+  script
+    | (function(m,e,t,r,i,k,a){m[i]=m[i] || function () {
+    |   (m[i].a = m[i].a || []).push(arguments)
+    | };
+    |   m[i].l=1 * new Date();
+    |   for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
+    |   k=e.createElement(t), a = e.getElementsByTagName(t)[0], k.async = 1, k.src = r, a.parentNode.insertBefore(k, a)})
+    | (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+
+    | ym(96006193, "init", {
+    | clickmap:true,
+    |   trackLinks:true,
+    |   accurateTrackBounce:true,
+    |   webvisor:true
+    |   });
+  noscript
+    div
+      img(src="https://mc.yandex.ru/watch/96006193" style="position:absolute; left:-9999px;" alt="")
+  <!-- /Yandex.Metrika counter -->

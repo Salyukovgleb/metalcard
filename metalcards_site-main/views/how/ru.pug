@@ -1,0 +1,101 @@
+include ./../templates/ru-header.pug
+include ./../templates/footer.pug
+include ./../templates/textWithTags.pug
+
+- var queryComplete = query ? query : ""
+
+doctype html
+html(lang='ru')
+  head
+    meta(charset="UTF-8")
+    meta(http-equiv="X-UA-Compatible", content="IE=edge")
+    meta(name="viewport", content="width=device-width, initial-scale=1.0")
+
+    meta(name="facebook-domain-verification" content="bd1qy6hoqnatx50dekig5hjn6q5j7v")
+
+    title MetalCards - Как это работает
+    
+    link(rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png")
+    link(rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png")
+    link(rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png")
+    link(rel="manifest" href="/site.webmanifest")
+    meta(name="msapplication-TileColor" content="#da532c")
+    meta(name="theme-color" content="#ffffff")
+    
+    link(rel="stylesheet", href="/how/ru4.css")
+
+    style
+      | @font-face {
+      |     font-family: "Gilroy";
+      |     src: url('/fonts/gilroy-light.woff2') format('woff2'),
+      |         url('/fonts/gilroy-light.woff') format('woff'),
+      |         url('/fonts/gilroy-light.ttf') format('truetype');
+      |     font-weight: 300;
+      |     font-style: normal;
+      | }
+
+      | @font-face {
+      |     font-family: "Beware";
+      |     src: url('/fonts/beware-regular.woff2') format('woff2'),
+      |         url('/fonts/beware-regular.woff') format('woff'),
+      |         url('/fonts/beware-regular.ttf') format('truetype');
+      |     font-weight: 400;
+      |     font-style: normal;
+      | }
+  
+body
+  h1.visually-hidden Страница, на которой вы можете ознакомиться с обучающим видео
+
+  +header("how", "как это работает", queryComplete)
+
+  main.main
+    video.main__video(preload="auto")
+      source(src="/video/desk.mp4" type='video/mp4; codecs="avc1.42E01E, mp4a.40.2"')
+
+    video.main__video-mob(preload="auto")
+      source(src="/video/mob.mp4" type='video/mp4; codecs="avc1.42E01E, mp4a.40.2"')
+
+    h2.main__header Как это работает
+    button.main__play-btn смотри
+
+
+  +footer()
+
+  <script src="/how/ru4.js"></script>
+
+  <!-- Meta Pixel Code -->
+  script
+    | !function(f,b,e,v,n,t,s)
+    | {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    | n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+    | if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+    | n.queue=[];t=b.createElement(e);t.async=!0;
+    | t.src=v;s=b.getElementsByTagName(e)[0];
+    | s.parentNode.insertBefore(t,s)}(window, document,'script',
+    | 'https://connect.facebook.net/en_US/fbevents.js');
+    | fbq('init', '1176030859630983');
+    | fbq('track', 'PageView');
+
+  noscript
+    img(height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=1176030859630983&ev=PageView&noscript=1")
+  <!-- End Meta Pixel Code -->
+  <!-- Yandex.Metrika counter -->
+  script
+    | (function(m,e,t,r,i,k,a){m[i]=m[i] || function () {
+    |   (m[i].a = m[i].a || []).push(arguments)
+    | };
+    |   m[i].l=1 * new Date();
+    |   for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
+    |   k=e.createElement(t), a = e.getElementsByTagName(t)[0], k.async = 1, k.src = r, a.parentNode.insertBefore(k, a)})
+    | (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+
+    | ym(96006193, "init", {
+    | clickmap:true,
+    |   trackLinks:true,
+    |   accurateTrackBounce:true,
+    |   webvisor:true
+    |   });
+  noscript
+    div
+      img(src="https://mc.yandex.ru/watch/96006193" style="position:absolute; left:-9999px;" alt="")
+  <!-- /Yandex.Metrika counter -->

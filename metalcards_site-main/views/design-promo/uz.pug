@@ -1,0 +1,385 @@
+include ./../templates/uz-header.pug
+include ./../templates/footer.pug
+include ./../templates/textWithTags.pug
+
+- var queryComplete = query ? query : ""
+
+doctype html
+html(lang='uz')
+  head
+    meta(charset="UTF-8")
+    meta(http-equiv="X-UA-Compatible", content="IE=edge")
+    meta(name="viewport", content="width=device-width, initial-scale=1.0")
+
+    meta(name="facebook-domain-verification" content="bd1qy6hoqnatx50dekig5hjn6q5j7v")
+
+    title MetalCards - Sizning dizayningis
+    
+    link(rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png")
+    link(rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png")
+    link(rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png")
+    link(rel="manifest" href="/site.webmanifest")
+    meta(name="msapplication-TileColor" content="#da532c")
+    meta(name="theme-color" content="#ffffff")
+    
+    link(rel="stylesheet", href="/design-promo/uz.css?ver=17")
+
+    style
+      | @font-face {
+      |     font-family: "Gilroy";
+      |     src: url('/fonts/gilroy-light.woff2') format('woff2'),
+      |         url('/fonts/gilroy-light.woff') format('woff'),
+      |         url('/fonts/gilroy-light.ttf') format('truetype');
+      |     font-weight: 300;
+      |     font-style: normal;
+      | }
+
+      | @font-face {
+      |     font-family: "Beware";
+      |     src: url('/fonts/beware-regular.woff2') format('woff2'),
+      |         url('/fonts/beware-regular.woff') format('woff'),
+      |         url('/fonts/beware-regular.ttf') format('truetype');
+      |     font-weight: 400;
+      |     font-style: normal;
+      | }
+
+      | @font-face {
+      |   font-family: "Card";
+      |   src: url('/fonts/card-regular.woff2') format('woff2'),
+      |       url('/fonts/card-regular.woff') format('woff'),
+      |       url('/fonts/card-regular.ttf') format('truetype');
+      |   font-weight: 400;
+      |   font-style: normal;
+      | }
+  
+    style #{cardColorsCSS}
+
+body
+  h1.visually-hidden Karta dizaynini yaratishingiz mumkin bo'lgan sahifa
+
+  +header("design", "sizning dizayningis", queryComplete)
+
+  main
+    h2.visually-hidden Konstruktor
+
+    -
+      var fontsFamily = [
+        "Gilroy",
+        "Alex Brush", "Arabella", "Bodoni", "Card",
+        "Candlescript", "Castileo", "Lombardia", "Monotype Corsiva",
+        "Porcelain", "Postmaster", "Racing Catalogue", "Resphekt"
+      ];
+
+    each color in cardColors 
+      input.visually-hidden(type="radio" id=color.name + "-card", value=color.name, name="card-color", checked="checked")
+
+    section.configurator
+      h3.visually-hidden Konfigurator
+
+      div.configurator__card-data#card-data-side-a
+        div.configurator__card-data-desc
+          button#card-data-a-to-design-btn 
+            img(src="/images/arrow-black.svg", alt="Ok")
+            span Katalog
+
+        div.configurator__card-data-radio-cont
+          label(for="big-chip-input")
+            input.visually-hidden#big-chip-input(type="radio", name="big-chip-input", value="true")
+            span
+            div 
+              | katta 
+              br
+              | chip karta
+          label(for="small-chip-input")
+            input.visually-hidden#small-chip-input(type="radio", name="big-chip-input", value="false", checked="checked")
+            span
+            div 
+              | kichik 
+              br
+              | chip karta
+
+        div.configurator__card-data-inscription#side-a-inscription
+          div.configurator__card-data-inscription-desc
+            label(for="side-a-inscription-text") yozuv
+            p 0/20
+          input.configurator__card-data-inscription-text#side-a-inscription-text(type="text", name="side-a-inscription-text", placeholder="yozuv")
+
+          div.configurator__card-data-inscription-cont.configurator__card-data-inscription-font-cont#side-a-inscription-font-cont
+            button.configurator__card-data-inscription-cont-btn#side-a-inscription-font-cont-btn
+              span(style="opacity: 0.5;") Shrift
+            div.configurator__card-data-inscription-cont-inner
+              ul(class="configurator__card-data-inscription-cont-list")
+                each font in fontsFamily
+                  li.configurator__card-data-inscription-cont-list-item
+                    label.configurator__card-data-inscription-cont-list-item-label
+                      span #{font}
+                      input.visually-hidden(type="radio", name="side-a-inscription-font", value=font)
+
+          button.configurator__card-data-inscription-add-btn#side-a-inscription-add-btn Boshqa yorliq qo'shing
+
+        div.configurator__card-data-side-chooser
+          button.configurator__card-data-side-chooser-btn.configurator__card-data-side-chooser-btn_active
+            | Old
+            br
+            | tomoni
+          button#card-data-a-to-card-data-b-btn.configurator__card-data-side-chooser-btn
+            | Orqa
+            br
+            | tomon
+
+      div.configurator__card-data#card-data-side-b
+        div.configurator__card-data-desc
+          button#card-data-b-to-design-btn 
+            img(src="/images/arrow-black.svg", alt="Ok")
+            span Katalog
+        
+        div.configurator__card-data-owner-data
+          div
+            label(for="card-num-input") Karta raqami
+
+          div
+            label(for="card-time-input") amal qilish muddati
+
+          input#card-num-input(type="text", pattern="[0-9]{4}\s[0-9]\s[0-9]\s[0-9]", placeholder="8600 1234 5678 9123", maxlength="19")
+          
+          div
+            input#card-time-input(type="text", pattern="[0-9]{2}", placeholder="01", maxlength="2")
+            span /
+            input#card-time-2-input(type="text", pattern="[0-9]{2}", placeholder="01", maxlength="2")
+
+
+        div.configurator__card-data-check-cont
+          input.visually-hidden#remove-logo(type="checkbox", name="remove-logo")
+          label(for="remove-logo")
+            span
+            div MetalCards logotipini olib tashlash (+50 000 so'm)
+
+        div.configurator__card-data-inscription#side-b-inscription
+          div.configurator__card-data-inscription-desc
+            label(for="side-a-inscription-text") yozuv
+            p 0/20
+          input.configurator__card-data-inscription-text#side-b-inscription-text(type="text", name="side-b-inscription-text", placeholder="yozuv")
+
+          div.configurator__card-data-inscription-cont.configurator__card-data-inscription-font-cont#side-b-inscription-font-cont
+            button.configurator__card-data-inscription-cont-btn#side-b-inscription-font-cont-btn
+              span(style="opacity: 0.5;") Shrift
+            div.configurator__card-data-inscription-cont-inner
+              ul(class="configurator__card-data-inscription-cont-list")
+                each font in fontsFamily
+                  li.configurator__card-data-inscription-cont-list-item
+                    label.configurator__card-data-inscription-cont-list-item-label
+                      span #{font}
+                      input.visually-hidden(type="radio", name="side-b-inscription-font", value=font)
+
+          button.configurator__card-data-inscription-add-btn#side-b-inscription-add-btn Boshqa yorliq qo'shing
+
+
+        div.configurator__card-data-side-chooser
+          button#card-data-b-to-card-data-a-btn.configurator__card-data-side-chooser-btn
+            | Old
+            br
+            | tomoni
+          button.configurator__card-data-side-chooser-btn.configurator__card-data-side-chooser-btn_active
+            | Orqa
+            br
+            | tomon
+
+
+    section.visual
+      h3.visually-hidden Xaritani vizualizatsiya qilish
+
+      input.visually-hidden#visualChoiceA(type="radio" value="A" name="visualChoice" checked="checked")
+      input.visually-hidden#visualChoiceB(type="radio" value="B" name="visualChoice")
+
+      div(class=`visual__card visual__card_${promo.color}`)
+        div.visual__card-side-a
+          div.visual__card-side-a-picture
+            - var img = `/renders/${promo.folderName}/${cardColorsToRenderColors[promo.color]}/${promo.designID}`;
+            picture
+              source(srcset=`${img}.webp?ver=16` type="image/webp")
+              img(src=`${img}.png?ver=16`)
+
+          img.visual__card-side-a-chip.visual__card-side-a-chip_small(src="/images/chip-small.svg")
+
+        div.visual__card-side-b
+          div.visual__card-side-b-magnetic-stripe
+          div.visual__card-side-b-signature-stripe
+          div.visual__card-side-b-logo
+          div.visual__card-side-b-card-num 8600 1234 5678 9123
+          div.visual__card-side-b-card-time 01/25
+
+      div.visual__bottom
+        div
+          h4.visual__bottom-header umumiy qiymat
+          p.visual__bottom-price 
+            | #{Math.round(promo.promoPrice).toLocaleString("ru-RU")}
+          span so'm
+
+        button.visual__bottom-btn
+          span.visual__bottom-btn-inner
+            span.visual__bottom-btn-inner_dark
+              span Buyurtma
+            span.visual__bottom-btn-inner_white
+              span Buyurtma
+  
+    section.sub-designs
+
+  +footer()
+
+  section.buy-section
+    div
+      h4.buy-section-header umumiy qiymat
+      p.buy-section-price #{Math.round(promo.promoPrice).toLocaleString("ru-RU")}
+      span so'm
+
+    button.buy-section-btn
+      span.buy-section-btn__inner
+        span.buy-section-btn__inner_dark
+          span Buyurtma
+
+        span.buy-section-btn__inner_white
+          span Buyurtma
+
+  div.buy-pop
+    div.buy-pop__inner
+      div.buy-pop__inner-header
+        a.buy-pop__inner-header-logo(href="/uz/" + queryComplete)
+          h2.visually-hidden Kompaniya logotipi va bosh sahifaga havola
+          img(src="/images/logo-white.svg" alt="logotipi")
+
+        button.buy-pop__inner-header-exit-btn
+
+      div.preview.preview_hidden
+        h3 Dizaynni tasdiqlang
+
+        div.preview-card(id="preview-card-a")
+          div.preview-card-img-cont
+          img.preview-card-chip(src="/images/chip.svg")
+
+        div.preview-card(id="preview-card-b")
+          div.preview-card-magnetic-stripe
+          div.preview-card-signature-stripe
+          div.preview-card-logo
+          div.preview-card-img-cont
+        
+        button.preview-confirm-btn tasdiqlang
+        button.preview-return-btn muharrirga qaytish
+        
+      div.confirm.confirm_hidden
+        h2.confirm-header Buyurtmani tasdiqlash
+
+        label#confirm-name-label(for="confirm-name-input") Ism
+        input#confirm-name-input(type="text", name="name", placeholder="Ism", maxlength="60")
+        label#confirm-phone-label(for="confirm-phone-input") Telefon raqami
+        input#confirm-phone-input(type="text", name="phone", placeholder="(__) ___ __ __", maxlength="20")
+
+        h3.confirm-heading Qanday qabul qilishni tanlang
+
+        div.confirm-check-cont
+          input.visually-hidden#delivery-input(type="radio", name="way-to-get-input", value="delivery")
+          label(for="delivery-input")
+            span
+            div 
+              | O'zbekiston viloyatlari bo'ylab yetkazib berish +50&nbsp;000&nbsp;so'm
+              br 
+              | (menejerimiz siz bilan bog'lanadi)
+
+        div.confirm-check-cont
+          input.visually-hidden#delivery-yandex-input(type="radio", name="way-to-get-input", value="delivery-yandex")
+          label(for="delivery-yandex-input")
+            span
+            div 
+              | Yandex Taxi yetkazib berish
+              br
+              | (mijoz to'lovi)
+
+        div.confirm-check-cont
+          input.visually-hidden#pickup-input(type="radio", name="way-to-get-input", value="pickup", checked)
+          label(for="pickup-input")
+            span
+            div Termoq (Osie, 16)
+
+        p.confirm-pre-price to'lash
+        p.confirm-price #{Math.round(promo.promoPrice).toLocaleString("ru-RU")}
+
+        img.confirm-pay-me-img(src="/images/payme.svg" alt="PayMe logotipi")
+        button.confirm-pay-me-btn#payme-form-create-order
+          span buyurtmani tasdiqlang
+
+      div.form-payme.form-payme__hidden
+        h2.form-payme__header Buyurtma to'lash
+
+        button.form-payme__buy-btn#form-payme-link-click
+          span orqali to'lash
+          img(src="/images/click.svg" alt="Click лого")
+
+        button.form-payme__buy-btn#form-payme-link-payme
+          span orqali to'lash 
+          img(src="/images/payme.svg" alt="PayMe logotipi")
+
+        button.form-payme__buy-btn#form-payme-link-cache
+          span naqd pulda to'lash
+        
+        button#form-payme-close-btn(type="button")
+          span buyurtmani bekor qilish
+
+        div.block-cache
+          img(src="/images/block-cache-icon.svg", alt="")
+          p 
+            | naqd to'lov
+            br
+            | faqat Toshkentda
+
+  <svg xmlns='http://www.w3.org/2000/svg' id="gold-gradient-svg" width='300%' height='300%'>
+    <defs>
+      <linearGradient id='gold-gradient' gradientUnits='userSpaceOnUse' x1='-10.36%' y1='25.06%' x2='110.36%' y2='74.94%'>
+        <stop stop-color='#D5AC52'/>
+        <stop offset='.963' stop-color='#EAD373'/>
+      </linearGradient>
+    </defs>
+  </svg>
+
+  div#promo-json #{JSON.stringify(promo)}
+
+  div.visually-hidden#active-card-colors-names-json #{activeCardColorsNamesJSON}
+  div.visually-hidden#card-colors-to-render-colors-json #{cardColorsToRenderColorsJSON}
+  div.visually-hidden#default-color-name-json #{defaultColorNameJSON}
+
+  <script src="/design-promo/uz.js?ver=17"></script>
+
+  <!-- Meta Pixel Code -->
+  script
+    | !function(f,b,e,v,n,t,s)
+    | {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    | n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+    | if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+    | n.queue=[];t=b.createElement(e);t.async=!0;
+    | t.src=v;s=b.getElementsByTagName(e)[0];
+    | s.parentNode.insertBefore(t,s)}(window, document,'script',
+    | 'https://connect.facebook.net/en_US/fbevents.js');
+    | fbq('init', '1176030859630983');
+    | fbq('track', 'PageView');
+
+  noscript
+    img(height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=1176030859630983&ev=PageView&noscript=1")
+  <!-- End Meta Pixel Code -->
+  <!-- Yandex.Metrika counter -->
+  script
+    | (function(m,e,t,r,i,k,a){m[i]=m[i] || function () {
+    |   (m[i].a = m[i].a || []).push(arguments)
+    | };
+    |   m[i].l=1 * new Date();
+    |   for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
+    |   k=e.createElement(t), a = e.getElementsByTagName(t)[0], k.async = 1, k.src = r, a.parentNode.insertBefore(k, a)})
+    | (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+
+    | ym(96006193, "init", {
+    | clickmap:true,
+    |   trackLinks:true,
+    |   accurateTrackBounce:true,
+    |   webvisor:true
+    |   });
+  noscript
+    div
+      img(src="https://mc.yandex.ru/watch/96006193" style="position:absolute; left:-9999px;" alt="")
+  <!-- /Yandex.Metrika counter -->
