@@ -24,6 +24,10 @@ docker compose up --build -d
 - `admin.metalcards.uz` — админка
 - `paycom.metalcards.uz` — endpoint оплаты/callback Payme
 
+Рекомендуемые URL в кабинете Paycom:
+- Merchant API: `https://paycom.metalcards.uz/paycom/`
+- Callback: `https://paycom.metalcards.uz/`
+
 ### 1) DNS
 
 Проверьте A-записи:
