@@ -4,7 +4,6 @@ import {
   type Locale,
   localePathFromCurrentPath,
   navLabels,
-  otherLocale,
   routeFor,
   withQuery,
 } from "@/lib/site";
@@ -20,10 +19,6 @@ type SiteHeaderProps = {
 const navOrder: ActivePage[] = ["main", "gallery", "how", "benefits", "design"];
 
 export function SiteHeader({ activePage, locale, mobileHeading, query, currentPath }: SiteHeaderProps) {
-  const altLocale = otherLocale(locale);
-  const sameLocalePath = localePathFromCurrentPath(currentPath, locale);
-  const altLocalePath = localePathFromCurrentPath(currentPath, altLocale);
-
   const ru = locale === "ru";
 
   return (
@@ -56,13 +51,13 @@ export function SiteHeader({ activePage, locale, mobileHeading, query, currentPa
 
         <div className="header__lang-cont">
           <a
-            href={withQuery(sameLocalePath, query)}
+            href={withQuery(localePathFromCurrentPath(currentPath, "ru"), query)}
             className={`header__lang-cont-item ${ru ? "header__lang-cont-item_active" : ""}`}
           >
             рус
           </a>
           <a
-            href={withQuery(altLocalePath, query)}
+            href={withQuery(localePathFromCurrentPath(currentPath, "uz"), query)}
             className={`header__lang-cont-item ${!ru ? "header__lang-cont-item_active" : ""}`}
           >
             o&apos;zb
