@@ -32,6 +32,18 @@ function onlyDigits(value: string): string {
   return value.replace(/\D/g, "");
 }
 
+function normalizeEmail(value: string): string {
+  const trimmed = value.trim().toLowerCase();
+  if (!trimmed) {
+    return "";
+  }
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed) ? trimmed : "";
+}
+
+function fallbackEmail(): string {
+  return normalizeEmail(process.env.PAYME_DEFAULT_EMAIL ?? "") || "noreply@metalcards.uz";
+}
+
 function externalBaseUrl(request: NextRequest): string {
   const forwardedHost = request.headers.get("x-forwarded-host");
   const forwardedProto = request.headers.get("x-forwarded-proto");
@@ -61,6 +73,7 @@ function buildCheckoutUrl(input: {
   returnUrl: string;
   name: string;
   phone: string;
+  email: string;
 }): string {
   const params = [
     `m=${input.merchantId}`,
@@ -68,7 +81,7 @@ function buildCheckoutUrl(input: {
     `ac.${paymeAccountKey()}=${input.orderId}`,
     `ac.name=${input.name || "-"}`,
     `ac.phone=${onlyDigits(input.phone) || "-"}`,
-    "ac.email=null",
+    `ac.email=${input.email}`,
     `l=${input.lang}`,
     `c=${encodeURIComponent(input.callbackUrl)}`,
     `r=${encodeURIComponent(input.returnUrl)}`,
@@ -131,6 +144,7 @@ export async function GET(request: NextRequest) {
   const lang = langRaw === "uz" ? "uz" : "ru";
   const name = (request.nextUrl.searchParams.get("name") ?? "").trim();
   const phone = (request.nextUrl.searchParams.get("phone") ?? "").trim();
+  const email = normalizeEmail(request.nextUrl.searchParams.get("email") ?? "") || fallbackEmail();
 
   const base =
     normalizePublicBaseUrl(process.env.SITE_BASE_URL) ||
@@ -202,6 +216,7 @@ export async function GET(request: NextRequest) {
     returnUrl,
     name,
     phone,
+    email,
   });
 
   if (debug) {

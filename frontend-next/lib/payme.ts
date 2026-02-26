@@ -11,6 +11,18 @@ function onlyDigits(value: string): string {
   return value.replace(/\D/g, "");
 }
 
+function normalizeEmail(value: string | undefined): string {
+  const trimmed = (value ?? "").trim().toLowerCase();
+  if (!trimmed) {
+    return "";
+  }
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed) ? trimmed : "";
+}
+
+function fallbackEmail(): string {
+  return normalizeEmail(process.env.PAYME_DEFAULT_EMAIL) || "noreply@metalcards.uz";
+}
+
 function paymeMerchantId(): string {
   return (process.env.PAYME_MERCHANT_ID ?? "").trim();
 }
@@ -69,6 +81,7 @@ function buildPayload(input: {
   orderId: number;
   name: string;
   phone: string;
+  email?: string;
   lang: PaymeLang;
   callbackUrl?: string;
   returnUrl?: string;
@@ -79,7 +92,7 @@ function buildPayload(input: {
     `ac.order_id=${input.orderId}`,
     `ac.name=${input.name || "-"}`,
     `ac.phone=${onlyDigits(input.phone) || "-"}`,
-    "ac.email=null",
+    `ac.email=${normalizeEmail(input.email) || fallbackEmail()}`,
     `l=${input.lang}`,
   ];
 
@@ -98,6 +111,7 @@ export function buildPaymeCheckoutUrl(input: {
   amountTiyin: number;
   name: string;
   phone: string;
+  email?: string;
   lang: PaymeLang;
 }): string | null {
   const merchantId = paymeMerchantId();
@@ -115,6 +129,7 @@ export function buildPaymeCheckoutUrl(input: {
     orderId: input.order.id,
     name: input.name,
     phone: input.phone,
+    email: input.email,
     lang: input.lang,
     callbackUrl,
     returnUrl,
@@ -129,6 +144,7 @@ export function buildLegacyPaymentLinks(input: {
   amountTiyin: number;
   name: string;
   phone: string;
+  email?: string;
 }): { paymeLinkRu: string; paymeLinkUz: string } {
   const fallback = buildOrderShowDataPath(input.order);
   const gatewayBase = paymeGatewayBaseUrl();
@@ -153,6 +169,7 @@ export function buildLegacyPaymentLinks(input: {
     amountTiyin: input.amountTiyin,
     name: input.name,
     phone: input.phone,
+    email: input.email,
     lang: "ru",
   });
   const uz = buildGatewayUrl("uz") ?? buildPaymeCheckoutUrl({
@@ -160,6 +177,7 @@ export function buildLegacyPaymentLinks(input: {
     amountTiyin: input.amountTiyin,
     name: input.name,
     phone: input.phone,
+    email: input.email,
     lang: "uz",
   });
 

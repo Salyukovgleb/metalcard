@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import type { QueryResultRow } from "pg";
+import { POST as merchantPost } from "@/app/api/payme/merchant/route";
 import { query } from "@/lib/db";
 import { rateLimitResponse } from "@/lib/rate-limit";
 
@@ -97,6 +98,7 @@ async function handleCallback(request: Request) {
     return limited;
   }
 
+  const merchantRequest = request.clone();
   const url = new URL(request.url);
   const { json: bodyJson, form: bodyForm } = await parseBody(request);
 
@@ -105,17 +107,9 @@ async function handleCallback(request: Request) {
     asString(bodyJson.jsonrpc) === "2.0" &&
     typeof bodyJson.method === "string"
   ) {
-    return NextResponse.json({
-      jsonrpc: "2.0",
-      id: bodyJson.id ?? null,
-      error: {
-        code: -32601,
-        message: {
-          ru: "Метод не поддерживается на этом endpoint. Используйте Merchant API endpoint.",
-          en: "Method not supported on this endpoint. Use Merchant API endpoint.",
-        },
-      },
-    });
+    // Some Paycom кабинеты are configured with merchant endpoint = root URL.
+    // Route JSON-RPC calls to merchant handler to keep payments working.
+    return merchantPost(merchantRequest);
   }
 
   const orderIdRaw = findParam(url.searchParams, bodyJson, bodyForm, ["order_id", "ac.order_id", "ac_order_id"]);
