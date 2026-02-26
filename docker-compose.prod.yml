@@ -1,0 +1,221 @@
+name: metalcard_prod
+
+x-common-logging: &common-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "5"
+
+services:
+  db:
+    image: postgres:15
+    container_name: metalcard_db
+    environment:
+      POSTGRES_DB: ${DB_NAME:-metalcard}
+      POSTGRES_USER: ${DB_USER:-metalcard}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-change-me}
+      TZ: UTC
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      - ./deploy/postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+    networks:
+      - app
+    logging: *common-logging
+
+  site:
+    build:
+      context: .
+      dockerfile: frontend-next/Dockerfile
+    container_name: metalcard_site_next
+    depends_on:
+      db:
+        condition: service_healthy
+    expose:
+      - "3000"
+    environment:
+      NEXT_TELEMETRY_DISABLED: "1"
+      NODE_ENV: production
+      DB_HOST: db
+      DB_PORT: "5432"
+      DB_NAME: ${DB_NAME:-metalcard}
+      DB_USER: ${DB_USER:-metalcard}
+      DB_PASSWORD: ${DB_PASSWORD:-change-me}
+      DB_SSL: ${DB_SSL:-false}
+      SITE_BASE_URL: ${SITE_BASE_URL:-https://metalcards.uz}
+      PAYME_MERCHANT_ID: ${PAYME_MERCHANT_ID:-}
+      PAYME_USE_TEST: ${PAYME_USE_TEST:-false}
+      PAYME_KEY: ${PAYME_KEY:-}
+      PAYME_ACCOUNT_KEY: ${PAYME_ACCOUNT_KEY:-order_id}
+      PAYME_CALLBACK_URL: ${PAYME_CALLBACK_URL:-}
+      PAYME_RETURN_URL: ${PAYME_RETURN_URL:-}
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+      TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID:-}
+      TELEGRAM_API_URL: ${TELEGRAM_API_URL:-}
+    volumes:
+      - site_data:/app/frontend-next/.data
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "node -e \"require('http').get('http://127.0.0.1:3000', (r)=>process.exit(r.statusCode < 500 ? 0 : 1)).on('error', ()=>process.exit(1))\"",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    restart: unless-stopped
+    networks:
+      - app
+    logging: *common-logging
+
+  admin:
+    build:
+      context: .
+      dockerfile: admin-next/Dockerfile
+    container_name: metalcard_admin_next
+    depends_on:
+      db:
+        condition: service_healthy
+    expose:
+      - "3000"
+    environment:
+      NEXT_TELEMETRY_DISABLED: "1"
+      NODE_ENV: production
+      DB_HOST: db
+      DB_PORT: "5432"
+      DB_NAME: ${DB_NAME:-metalcard}
+      DB_USER: ${DB_USER:-metalcard}
+      DB_PASSWORD: ${DB_PASSWORD:-change-me}
+      DB_SSL: ${DB_SSL:-false}
+      ADMIN_SESSION_SECRET: ${ADMIN_SESSION_SECRET:-change-me-admin-secret}
+      BACKUP_STATUS_FILE: /backup-status/last_backup.json
+      USE_S3_MEDIA: ${USE_S3_MEDIA:-true}
+      MEDIA_STORAGE: ${MEDIA_STORAGE:-s3}
+      S3_ENDPOINT_URL: ${S3_ENDPOINT_URL:-https://s3.ru1.storage.beget.cloud}
+      S3_REGION: ${S3_REGION:-ru-1}
+      S3_BUCKET: ${S3_BUCKET:-}
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY:-}
+      S3_SECRET_KEY: ${S3_SECRET_KEY:-}
+      S3_PUBLIC_BASE_URL: ${S3_PUBLIC_BASE_URL:-}
+      S3_PREFIX: ${S3_PREFIX:-media}
+      S3_FORCE_PATH_STYLE: ${S3_FORCE_PATH_STYLE:-true}
+    volumes:
+      - backup_status:/backup-status:ro
+      - admin_uploads:/app/admin-next/public/uploads
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "node -e \"require('http').get('http://127.0.0.1:3000/login', (r)=>process.exit(r.statusCode < 500 ? 0 : 1)).on('error', ()=>process.exit(1))\"",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    restart: unless-stopped
+    networks:
+      - app
+    logging: *common-logging
+
+  db-backup:
+    build:
+      context: .
+      dockerfile: docker/db-backup/Dockerfile
+    container_name: metalcard_db_backup
+    depends_on:
+      db:
+        condition: service_healthy
+    command: ["sh", "/scripts/backup.sh"]
+    environment:
+      DB_HOST: db
+      DB_PORT: "5432"
+      DB_NAME: ${DB_NAME:-metalcard}
+      DB_USER: ${DB_USER:-metalcard}
+      DB_PASSWORD: ${DB_PASSWORD:-change-me}
+      BACKUP_DIR: /backups
+      BACKUP_STATUS_FILE: /backup-status/last_backup.json
+      BACKUP_FILE_PREFIX: ${BACKUP_FILE_PREFIX:-metalcard}
+      BACKUP_INTERVAL_HOURS: ${BACKUP_INTERVAL_HOURS:-6}
+      BACKUP_RETENTION_DAYS: ${BACKUP_RETENTION_DAYS:-14}
+      BACKUP_S3_ENABLED: ${BACKUP_S3_ENABLED:-true}
+      BACKUP_S3_PREFIX: ${BACKUP_S3_PREFIX:-db-backups}
+      BACKUP_S3_FORCE_PATH_STYLE: ${S3_FORCE_PATH_STYLE:-true}
+      S3_ENDPOINT_URL: ${S3_ENDPOINT_URL:-https://s3.ru1.storage.beget.cloud}
+      S3_REGION: ${S3_REGION:-ru-1}
+      S3_BUCKET: ${S3_BUCKET:-}
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY:-}
+      S3_SECRET_KEY: ${S3_SECRET_KEY:-}
+    volumes:
+      - db_backups:/backups
+      - backup_status:/backup-status
+    restart: unless-stopped
+    networks:
+      - app
+    logging: *common-logging
+
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: metalcard_nginx
+    depends_on:
+      site:
+        condition: service_healthy
+      admin:
+        condition: service_healthy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./deploy/nginx/conf.d:/etc/nginx/conf.d:ro
+      - letsencrypt:/etc/letsencrypt
+      - certbot_www:/var/www/certbot
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1/ || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+    networks:
+      - edge
+      - app
+    logging: *common-logging
+
+  certbot:
+    image: certbot/certbot:latest
+    container_name: metalcard_certbot
+    profiles: ["certbot"]
+    volumes:
+      - letsencrypt:/etc/letsencrypt
+      - certbot_www:/var/www/certbot
+    command: ["renew", "--webroot", "-w", "/var/www/certbot", "--quiet"]
+    networks:
+      - edge
+
+volumes:
+  db_data:
+    name: metalcard_db_data
+  site_data:
+    name: metalcard_site_data
+  admin_uploads:
+    name: metalcard_admin_uploads
+  db_backups:
+    name: metalcard_db_backups
+  backup_status:
+    name: metalcard_backup_status
+  letsencrypt:
+    name: metalcard_letsencrypt
+  certbot_www:
+    name: metalcard_certbot_www
+
+networks:
+  edge:
+    name: metalcard_edge
+  app:
+    name: metalcard_app
+    internal: true
