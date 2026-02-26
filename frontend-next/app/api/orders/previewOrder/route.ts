@@ -1,8 +1,25 @@
 import { NextResponse } from "next/server";
-import { findDesignById } from "@/lib/design-data";
+import type { QueryResultRow } from "pg";
 import { cardColorsToRenderColors } from "@/lib/card-colors";
+import { applyAnalyticsCookies, recordAnalyticsEvent } from "@/lib/analytics";
+import { query } from "@/lib/db";
 import { getDrawApp } from "@/lib/draw-app";
 import type { OrderPayload } from "@/lib/order-store";
+
+type DbDesignRow = QueryResultRow & {
+  id: number;
+  category: string | null;
+  svg_orig: string;
+};
+
+function folderFromSvg(svgPath: string): string | null {
+  const normalized = svgPath.replaceAll("\\", "/");
+  const parts = normalized.split("/").filter(Boolean);
+  if (parts.length < 2) {
+    return null;
+  }
+  return parts[parts.length - 2] ?? null;
+}
 
 export async function POST(request: Request) {
   try {
@@ -10,27 +27,53 @@ export async function POST(request: Request) {
     if (!payload || typeof payload.design !== "number") {
       return NextResponse.json({ message: "Неправильные данные" }, { status: 400 });
     }
+    const normalizedPayload: OrderPayload = {
+      ...payload,
+      bigChip: false,
+      logoDeactive: false,
+    };
 
-    const design = findDesignById(payload.design);
-    if (!design) {
+    const designResult = await query<DbDesignRow>(
+      `
+        SELECT id, category, svg_orig
+        FROM designs
+        WHERE id = $1 AND active IS TRUE
+        LIMIT 1
+      `,
+      [payload.design],
+    );
+    const design = designResult.rows[0];
+    const folderName = design ? design.category ?? folderFromSvg(design.svg_orig) : null;
+    if (!design || !folderName) {
       return NextResponse.json({ message: "Неправильные данные" }, { status: 400 });
     }
 
     const drawApp = await getDrawApp();
-    const sideA = drawApp.drawTextOnSideA(payload.cardAData);
-    const sideB = drawApp.drawTextOnSideB(payload.cardBData, payload.cardNum, payload.cardTime);
+    const sideA = drawApp.drawTextOnSideA(normalizedPayload.cardAData);
+    const sideB = drawApp.drawTextOnSideB(normalizedPayload.cardBData, normalizedPayload.cardNum, normalizedPayload.cardTime);
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       forPreview: {
         sideA,
         sideB,
-        color: payload.color,
-        logoDeactive: payload.logoDeactive,
-        bigChip: payload.bigChip,
-        render: `/renders/${design.folderName}/${cardColorsToRenderColors[payload.color] ?? "white"}/${payload.design}`,
+        color: normalizedPayload.color,
+        logoDeactive: false,
+        bigChip: false,
+        render: `/renders/${folderName}/${cardColorsToRenderColors[normalizedPayload.color] ?? "white"}/${normalizedPayload.design}`,
       },
-      forOrder: payload,
+      forOrder: normalizedPayload,
     });
+    const identity = await recordAnalyticsEvent(request, {
+      eventName: "order_preview",
+      path: "/api/orders/previewOrder",
+      payload: {
+        designId: normalizedPayload.design ?? null,
+        color: normalizedPayload.color,
+        delivery: normalizedPayload.delivery,
+      },
+    });
+    applyAnalyticsCookies(response, identity);
+    return response;
   } catch {
     return NextResponse.json({ message: "Неправильные данные" }, { status: 400 });
   }

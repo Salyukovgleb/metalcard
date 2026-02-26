@@ -1,3 +1,4 @@
+import Link from "next/link";
 import {
   type ActivePage,
   type Locale,
@@ -134,6 +135,8 @@ export function SiteHeader({ activePage, locale, mobileHeading, query, currentPa
             </nav>
 
             <div className="header__container-inner-links_mob">
+              <Link href="/privacy-policy">{ru ? "политика конфиденциальности" : "maxfiylik siyosati"}</Link>
+              <Link href="/user-agreement">{ru ? "пользовательское соглашение" : "foydalanuvchi kelishuvi"}</Link>
               <a href="https://www.instagram.com/metalcards.uz?utm_medium=copy_link">instagram</a>
               <a href="http://tiktok.com/@metalcardsuz">tik tok</a>
               <a href="https://t.me/metalcardsuz">telegram</a>

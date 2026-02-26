@@ -1,1 +1,5 @@
-../../metalcards_site-main/static/ru4.js.LICENSE.txt
+/*!
+ * perfect-scrollbar v1.5.3
+ * Copyright 2021 Hyunje Jun, MDBootstrap and Contributors
+ * Licensed under MIT
+ */

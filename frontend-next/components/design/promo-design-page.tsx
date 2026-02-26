@@ -1,5 +1,7 @@
+import Link from "next/link";
 import Script from "next/script";
 import { notFound } from "next/navigation";
+import { OrderLegalGuard } from "@/components/order-legal-guard";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { type Locale, mobileHeadingByPage } from "@/lib/site";
@@ -47,7 +49,7 @@ const text = {
     cardWithSmallChip2: "маленьким чипом",
     cardNum: "номер карты",
     cardTime: "срок действия",
-    removeLogo: "убрать логотип MetalCards (+50 000 сум)",
+    removeLogo: "убрать логотип MetalCards",
     inscription: "надпись",
     font: "Шрифт",
     addInscription: "Добавить еще одну надпись",
@@ -72,6 +74,11 @@ const text = {
     payVia: "оплатить через",
     cash: "оплатить наличными",
     cancel: "отменить заказ",
+    acceptPrivacyPrefix: "Я принимаю",
+    acceptPrivacyLink: "политику конфиденциальности",
+    acceptTermsPrefix: "Я принимаю",
+    acceptTermsLink: "пользовательское соглашение",
+    legalRequired: "Чтобы продолжить, примите политику конфиденциальности и пользовательское соглашение.",
   },
   uz: {
     h1: "Karta dizaynini yaratishingiz mumkin bo'lgan sahifa",
@@ -85,7 +92,7 @@ const text = {
     cardWithSmallChip2: "chip karta",
     cardNum: "Karta raqami",
     cardTime: "amal qilish muddati",
-    removeLogo: "MetalCards logotipini olib tashlash (+50 000 so'm)",
+    removeLogo: "MetalCards logotipini olib tashlash",
     inscription: "yozuv",
     font: "Shrift",
     addInscription: "Boshqa yorliq qo'shing",
@@ -110,6 +117,11 @@ const text = {
     payVia: "orqali to'lash",
     cash: "naqd pulda to'lash",
     cancel: "buyurtmani bekor qilish",
+    acceptPrivacyPrefix: "Men",
+    acceptPrivacyLink: "maxfiylik siyosatini",
+    acceptTermsPrefix: "Men",
+    acceptTermsLink: "foydalanuvchi kelishuvini",
+    legalRequired: "Davom etish uchun maxfiylik siyosati va foydalanuvchi kelishuvini qabul qiling.",
   },
 } as const;
 
@@ -202,15 +214,7 @@ export default function DesignPromoPage({ locale, promoSlug, searchParams }: Pro
 
           <div className="configurator__card-data" id="card-data-side-a">
             <div className="configurator__card-data-radio-cont">
-              <label htmlFor="big-chip-input">
-                <input className="visually-hidden" id="big-chip-input" type="radio" name="big-chip-input" value="true" />
-                <span />
-                <div>
-                  {copy.cardWithBigChip}
-                  <br />
-                  {copy.cardWithBigChip2}
-                </div>
-              </label>
+              <input className="visually-hidden" id="big-chip-input" type="radio" name="big-chip-input" value="true" />
               <label htmlFor="small-chip-input">
                 <input className="visually-hidden" id="small-chip-input" type="radio" name="big-chip-input" value="false" defaultChecked />
                 <span />
@@ -256,13 +260,7 @@ export default function DesignPromoPage({ locale, promoSlug, searchParams }: Pro
               </div>
             </div>
 
-            <div className="configurator__card-data-check-cont">
-              <input className="visually-hidden" id="remove-logo" type="checkbox" name="remove-logo" />
-              <label htmlFor="remove-logo">
-                <span />
-                <div>{copy.removeLogo}</div>
-              </label>
-            </div>
+            <input className="visually-hidden" id="remove-logo" type="checkbox" name="remove-logo" />
 
             <Inscription idPrefix="b" locale={locale as Locale} />
 
@@ -302,7 +300,7 @@ export default function DesignPromoPage({ locale, promoSlug, searchParams }: Pro
             <div className="visual__card-side-b">
               <div className="visual__card-side-b-magnetic-stripe" />
               <div className="visual__card-side-b-signature-stripe" />
-              <div className="visual__card-side-b-logo" />
+              <div className="visual__card-side-b-logo visually-hidden" />
               <div className="visual__card-side-b-card-num">8600 1234 5678 9123</div>
               <div className="visual__card-side-b-card-time">01/25</div>
             </div>
@@ -375,7 +373,7 @@ export default function DesignPromoPage({ locale, promoSlug, searchParams }: Pro
               <div className="preview-card-img-cont" />
               <div className="preview-card-magnetic-stripe" />
               <div className="preview-card-signature-stripe" />
-              <div className="preview-card-logo" />
+              <div className="preview-card-logo visually-hidden" />
             </div>
 
             <button className="preview-confirm-btn">{copy.confirm}</button>
@@ -428,6 +426,36 @@ export default function DesignPromoPage({ locale, promoSlug, searchParams }: Pro
                 <div>{copy.pickup}</div>
               </label>
             </div>
+
+            <div className="confirm-check-cont confirm-check-cont_legal">
+              <input className="visually-hidden" id="legal-privacy-consent" type="checkbox" name="legal-privacy-consent" />
+              <label htmlFor="legal-privacy-consent">
+                <span />
+                <div>
+                  {copy.acceptPrivacyPrefix}{" "}
+                  <Link href="/privacy-policy" target="_blank" rel="noreferrer">
+                    {copy.acceptPrivacyLink}
+                  </Link>
+                </div>
+              </label>
+            </div>
+
+            <div className="confirm-check-cont confirm-check-cont_legal">
+              <input className="visually-hidden" id="legal-terms-consent" type="checkbox" name="legal-terms-consent" />
+              <label htmlFor="legal-terms-consent">
+                <span />
+                <div>
+                  {copy.acceptTermsPrefix}{" "}
+                  <Link href="/user-agreement" target="_blank" rel="noreferrer">
+                    {copy.acceptTermsLink}
+                  </Link>
+                </div>
+              </label>
+            </div>
+
+            <p className="confirm-legal-error" id="legal-consent-error" hidden>
+              {copy.legalRequired}
+            </p>
 
             <p className="confirm-pre-price">{copy.toPay}</p>
             <p className="confirm-price">{Math.round(promo.promoPrice).toLocaleString("ru-RU")}</p>
@@ -493,6 +521,7 @@ export default function DesignPromoPage({ locale, promoSlug, searchParams }: Pro
       </div>
 
       <Script src={`/design-promo/${locale}.js?ver=17`} strategy="afterInteractive" />
+      <OrderLegalGuard />
     </>
   );
 }

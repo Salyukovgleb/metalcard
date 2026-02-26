@@ -1,4 +1,6 @@
+import Link from "next/link";
 import Script from "next/script";
+import { OrderLegalGuard } from "@/components/order-legal-guard";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { type Locale, mobileHeadingByPage } from "@/lib/site";
@@ -54,7 +56,7 @@ const t = {
     sideBack2: "сторона",
     cardNum: "номер карты",
     cardTime: "срок действия",
-    removeLogo: "убрать логотип MetalCards (+50 000 сум)",
+    removeLogo: "убрать логотип MetalCards",
     visual: "Визуализация карты",
     color: "цвет",
     chooseColor: "Выбери цвет",
@@ -81,6 +83,11 @@ const t = {
     cancel: "отменить заказ",
     cashOnly1: "Оплата наличными",
     cashOnly2: "только по Ташкенту",
+    acceptPrivacyPrefix: "Я принимаю",
+    acceptPrivacyLink: "политику конфиденциальности",
+    acceptTermsPrefix: "Я принимаю",
+    acceptTermsLink: "пользовательское соглашение",
+    legalRequired: "Чтобы продолжить, примите политику конфиденциальности и пользовательское соглашение.",
   },
   uz: {
     h1: "Karta dizaynini yaratishingiz mumkin bo'lgan sahifa",
@@ -102,7 +109,7 @@ const t = {
     sideBack2: "tomon",
     cardNum: "Karta raqami",
     cardTime: "amal qilish muddati",
-    removeLogo: "MetalCards logotipini olib tashlash (+50 000 so'm)",
+    removeLogo: "MetalCards logotipini olib tashlash",
     visual: "Xaritani vizualizatsiya qilish",
     color: "rang",
     chooseColor: "Rangni tanlang",
@@ -129,6 +136,11 @@ const t = {
     cancel: "buyurtmani bekor qilish",
     cashOnly1: "naqd to'lov",
     cashOnly2: "faqat Toshkentda",
+    acceptPrivacyPrefix: "Men",
+    acceptPrivacyLink: "maxfiylik siyosatini",
+    acceptTermsPrefix: "Men",
+    acceptTermsLink: "foydalanuvchi kelishuvini",
+    legalRequired: "Davom etish uchun maxfiylik siyosati va foydalanuvchi kelishuvini qabul qiling.",
   },
 } as const;
 
@@ -276,25 +288,9 @@ export default function DefaultDesignPage({ locale, searchParams }: Props) {
             </div>
 
             <div className="configurator__card-data-radio-cont">
-              <label htmlFor="big-chip-input">
-                <input className="visually-hidden" id="big-chip-input" type="radio" name="big-chip-input" value="true" />
-                <span />
-                <div>
-                  {text.cardWithBigChip}
-                  <br />
-                  {text.cardWithBigChip2}
-                </div>
-              </label>
-
+              <input className="visually-hidden" id="big-chip-input" type="radio" name="big-chip-input" value="true" />
+              <input className="visually-hidden" id="small-chip-input" type="radio" name="big-chip-input" value="false" defaultChecked />
               <label htmlFor="small-chip-input">
-                <input
-                  className="visually-hidden"
-                  id="small-chip-input"
-                  type="radio"
-                  name="big-chip-input"
-                  value="false"
-                  defaultChecked
-                />
                 <span />
                 <div>
                   {text.cardWithSmallChip}
@@ -346,13 +342,7 @@ export default function DefaultDesignPage({ locale, searchParams }: Props) {
               </div>
             </div>
 
-            <div className="configurator__card-data-check-cont">
-              <input className="visually-hidden" id="remove-logo" type="checkbox" name="remove-logo" />
-              <label htmlFor="remove-logo">
-                <span />
-                <div>{text.removeLogo}</div>
-              </label>
-            </div>
+            <input className="visually-hidden" id="remove-logo" type="checkbox" name="remove-logo" />
 
             <SideInscription idPrefix="b" locale={locale as Locale} />
 
@@ -416,7 +406,7 @@ export default function DefaultDesignPage({ locale, searchParams }: Props) {
             <div className="visual__card-side-b">
               <div className="visual__card-side-b-magnetic-stripe" />
               <div className="visual__card-side-b-signature-stripe" />
-              <div className="visual__card-side-b-logo" />
+              <div className="visual__card-side-b-logo visually-hidden" />
               <div className="visual__card-side-b-card-num">8600 1234 5678 9123</div>
               <div className="visual__card-side-b-card-time">01/25</div>
             </div>
@@ -489,7 +479,7 @@ export default function DefaultDesignPage({ locale, searchParams }: Props) {
               <div className="preview-card-img-cont" />
               <div className="preview-card-magnetic-stripe" />
               <div className="preview-card-signature-stripe" />
-              <div className="preview-card-logo" />
+              <div className="preview-card-logo visually-hidden" />
             </div>
 
             <button className="preview-confirm-btn">{text.confirm}</button>
@@ -542,6 +532,36 @@ export default function DefaultDesignPage({ locale, searchParams }: Props) {
                 <div>{text.pickup}</div>
               </label>
             </div>
+
+            <div className="confirm-check-cont confirm-check-cont_legal">
+              <input className="visually-hidden" id="legal-privacy-consent" type="checkbox" name="legal-privacy-consent" />
+              <label htmlFor="legal-privacy-consent">
+                <span />
+                <div>
+                  {text.acceptPrivacyPrefix}{" "}
+                  <Link href="/privacy-policy" target="_blank" rel="noreferrer">
+                    {text.acceptPrivacyLink}
+                  </Link>
+                </div>
+              </label>
+            </div>
+
+            <div className="confirm-check-cont confirm-check-cont_legal">
+              <input className="visually-hidden" id="legal-terms-consent" type="checkbox" name="legal-terms-consent" />
+              <label htmlFor="legal-terms-consent">
+                <span />
+                <div>
+                  {text.acceptTermsPrefix}{" "}
+                  <Link href="/user-agreement" target="_blank" rel="noreferrer">
+                    {text.acceptTermsLink}
+                  </Link>
+                </div>
+              </label>
+            </div>
+
+            <p className="confirm-legal-error" id="legal-consent-error" hidden>
+              {text.legalRequired}
+            </p>
 
             <p className="confirm-pre-price">{text.toPay}</p>
             <p className="confirm-price">250 000</p>
@@ -607,6 +627,7 @@ export default function DefaultDesignPage({ locale, searchParams }: Props) {
       </div>
 
       <Script src={`/design/${locale}.js?ver=17`} strategy="afterInteractive" />
+      <OrderLegalGuard />
     </>
   );
 }

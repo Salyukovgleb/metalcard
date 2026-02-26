@@ -11,7 +11,6 @@ ENV NEXT_TELEMETRY_DISABLED=1
 
 COPY --from=deps /app/frontend-next/node_modules /app/frontend-next/node_modules
 COPY frontend-next /app/frontend-next
-COPY metalcards_site-main /app/metalcards_site-main
 
 WORKDIR /app/frontend-next
 RUN npm run build
@@ -23,7 +22,7 @@ ENV NEXT_TELEMETRY_DISABLED=1
 
 COPY --from=builder /app/frontend-next /app/frontend-next
 
-RUN mkdir -p /app/metalcards_site-main
+RUN mkdir -p /app/frontend-next/.data
 
 EXPOSE 3000
 CMD ["npm", "run", "start", "--", "-p", "3000", "-H", "0.0.0.0"]

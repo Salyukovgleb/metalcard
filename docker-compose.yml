@@ -1,13 +1,126 @@
 services:
-  frontend-next:
+  db:
+    image: postgres:15
+    container_name: metalcard_db
+    environment:
+      POSTGRES_DB: ${DB_NAME:-metalcard}
+      POSTGRES_USER: ${DB_USER:-metalcard}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-metalcard}
+      TZ: UTC
+    ports:
+      - "5433:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      - ./Metalcard/metalcard_db/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+
+  site:
     build:
       context: .
       dockerfile: frontend-next/Dockerfile
+    container_name: metalcard_site_next
+    depends_on:
+      db:
+        condition: service_healthy
     ports:
       - "3000:3000"
-    volumes:
-      - ./metalcards_site-main:/app/metalcards_site-main:ro
     environment:
       NEXT_TELEMETRY_DISABLED: "1"
       NODE_OPTIONS: ""
+      DB_HOST: db
+      DB_PORT: "5432"
+      DB_NAME: ${DB_NAME:-metalcard}
+      DB_USER: ${DB_USER:-metalcard}
+      DB_PASSWORD: ${DB_PASSWORD:-metalcard}
+      DB_SSL: ${DB_SSL:-false}
+      SITE_BASE_URL: ${SITE_BASE_URL:-http://localhost:3000}
+      PAYME_MERCHANT_ID: ${PAYME_MERCHANT_ID:-}
+      PAYME_USE_TEST: ${PAYME_USE_TEST:-false}
+      PAYME_KEY: ${PAYME_KEY:-}
+      PAYME_ACCOUNT_KEY: ${PAYME_ACCOUNT_KEY:-order_id}
+      PAYME_CALLBACK_URL: ${PAYME_CALLBACK_URL:-}
+      PAYME_RETURN_URL: ${PAYME_RETURN_URL:-}
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+      TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID:-}
+      TELEGRAM_API_URL: ${TELEGRAM_API_URL:-}
+    volumes:
+      - ./frontend-next/.data:/app/frontend-next/.data
     restart: unless-stopped
+
+  admin:
+    build:
+      context: .
+      dockerfile: admin-next/Dockerfile
+    container_name: metalcard_admin_next
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "3001:3000"
+    environment:
+      NEXT_TELEMETRY_DISABLED: "1"
+      DB_HOST: db
+      DB_PORT: "5432"
+      DB_NAME: ${DB_NAME:-metalcard}
+      DB_USER: ${DB_USER:-metalcard}
+      DB_PASSWORD: ${DB_PASSWORD:-metalcard}
+      DB_SSL: ${DB_SSL:-false}
+      ADMIN_SESSION_SECRET: ${ADMIN_SESSION_SECRET:-change-me-admin-secret}
+      BACKUP_STATUS_FILE: /backup-status/last_backup.json
+      USE_S3_MEDIA: ${USE_S3_MEDIA:-true}
+      MEDIA_STORAGE: ${MEDIA_STORAGE:-s3}
+      S3_ENDPOINT_URL: ${S3_ENDPOINT_URL:-https://s3.beget.com}
+      S3_REGION: ${S3_REGION:-us-east-1}
+      S3_BUCKET: ${S3_BUCKET:-}
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY:-}
+      S3_SECRET_KEY: ${S3_SECRET_KEY:-}
+      S3_PUBLIC_BASE_URL: ${S3_PUBLIC_BASE_URL:-}
+      S3_PREFIX: ${S3_PREFIX:-media}
+      S3_FORCE_PATH_STYLE: ${S3_FORCE_PATH_STYLE:-true}
+    volumes:
+      - backup_status:/backup-status:ro
+      - ./admin-next/public/uploads:/app/admin-next/public/uploads
+    restart: unless-stopped
+
+  db-backup:
+    build:
+      context: .
+      dockerfile: docker/db-backup/Dockerfile
+    container_name: metalcard_db_backup
+    depends_on:
+      db:
+        condition: service_healthy
+    command: ["sh", "/scripts/backup.sh"]
+    environment:
+      DB_HOST: db
+      DB_PORT: "5432"
+      DB_NAME: ${DB_NAME:-metalcard}
+      DB_USER: ${DB_USER:-metalcard}
+      DB_PASSWORD: ${DB_PASSWORD:-metalcard}
+      BACKUP_DIR: /backups
+      BACKUP_STATUS_FILE: /backup-status/last_backup.json
+      BACKUP_FILE_PREFIX: ${BACKUP_FILE_PREFIX:-metalcard}
+      BACKUP_INTERVAL_HOURS: ${BACKUP_INTERVAL_HOURS:-6}
+      BACKUP_RETENTION_DAYS: ${BACKUP_RETENTION_DAYS:-14}
+      BACKUP_S3_ENABLED: ${BACKUP_S3_ENABLED:-true}
+      BACKUP_S3_PREFIX: ${BACKUP_S3_PREFIX:-db-backups}
+      BACKUP_S3_FORCE_PATH_STYLE: ${S3_FORCE_PATH_STYLE:-true}
+      S3_ENDPOINT_URL: ${S3_ENDPOINT_URL:-https://s3.beget.com}
+      S3_REGION: ${S3_REGION:-us-east-1}
+      S3_BUCKET: ${S3_BUCKET:-}
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY:-}
+      S3_SECRET_KEY: ${S3_SECRET_KEY:-}
+    volumes:
+      - db_backups:/backups
+      - backup_status:/backup-status
+    restart: unless-stopped
+
+volumes:
+  db_data:
+  db_backups:
+  backup_status:

@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import "./globals.css";
+import { AnalyticsTracker } from "@/components/analytics-tracker";
+import { CookieConsentBanner } from "@/components/cookie-consent-banner";
 
 const fontFaceCss = `
 @font-face {
@@ -46,6 +49,10 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     <html lang="ru">
       <body>
         <style dangerouslySetInnerHTML={{ __html: fontFaceCss }} />
+        <Suspense fallback={null}>
+          <AnalyticsTracker />
+        </Suspense>
+        <CookieConsentBanner />
         {children}
       </body>
     </html>

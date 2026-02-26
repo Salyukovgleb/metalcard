@@ -36,12 +36,7 @@ const categoryMap: DesignCategory[] = [
 let cachedDesigns: Design[] | null = null;
 
 function resolveOrigsRoot(): string {
-  const local = path.resolve(process.cwd(), "origs");
-  if (fs.existsSync(local)) {
-    return local;
-  }
-
-  return path.resolve(process.cwd(), "../metalcards_site-main/origs");
+  return path.resolve(process.cwd(), "origs");
 }
 
 export function getDesignCategories(): DesignCategory[] {

@@ -1,7 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { activeCardColors } from "@/lib/card-colors";
-import { findDesignById } from "@/lib/design-data";
 import { getDrawApp } from "@/lib/draw-app";
 import { findOrderByIdAndKey } from "@/lib/order-store";
 
@@ -19,19 +18,21 @@ export default async function ShowOrderPage({ params }: Props) {
   const { id, key } = await params;
   const orderId = Number.parseInt(id, 10);
 
-  const order = findOrderByIdAndKey(orderId, key);
+  const order = await findOrderByIdAndKey(orderId, key);
   if (!order) {
     notFound();
   }
 
   const color = activeCardColors.find((cardColor) => cardColor.name === order.color) ?? activeCardColors[0];
-  const design = typeof order.design === "number" ? findDesignById(order.design) : undefined;
 
   const drawApp = await getDrawApp();
   const sideA = drawApp.drawTextOnSideA(order.orderData.cardAData);
   const sideB = drawApp.drawTextOnSideB(order.orderData.cardBData, order.orderData.cardNum, order.orderData.cardTime);
 
-  const render = design ? `/renders/${design.folderName}/${color.renderColor}/${design.id}` : "";
+  const render =
+    order.design && order.folderName
+      ? `/renders/${order.folderName}/${color.renderColor}/${order.design}`
+      : "";
 
   const colorCSS = `
     .preview-card_${color.name} {
@@ -47,9 +48,6 @@ export default async function ShowOrderPage({ params }: Props) {
       stroke: ${color.fillColor};
     }
 
-    .preview-card_${color.name} .preview-card-logo {
-      background-image: url(${color.logoImg});
-    }
   `;
 
   const stateText = order.state === 2 ? "Оплачен" : order.state === 6 ? "Оплата наличными" : "Не оплачен";
@@ -75,15 +73,14 @@ export default async function ShowOrderPage({ params }: Props) {
 
       <div>
         <h2>Дизайн</h2>
-        <p>Чип: {order.bigChip ? "Большой" : "Маленький"}</p>
-        <p>Логотип MetalCards: {order.logoDeactive ? "Отсутствует" : "Присутствует"}</p>
+        <p>Чип: Маленький</p>
         <p>Цвет карты: {color.textRu}</p>
         <p>Срок изготовления: 1-2 дня</p>
         <p>С вами свяжутся в ближайшее время</p>
       </div>
 
       <div className="preview-card-cont">
-        <div id="preview-card-a" className={`preview-card preview-card_${order.color} ${order.logoDeactive ? "preview-card_logo-deactive" : ""}`}>
+        <div id="preview-card-a" className={`preview-card preview-card_${order.color}`}>
           <div className="preview-card-img-cont" dangerouslySetInnerHTML={{ __html: sideA }} />
           {render ? (
             <picture>
@@ -91,14 +88,13 @@ export default async function ShowOrderPage({ params }: Props) {
               <img src={`${render}.png`} />
             </picture>
           ) : null}
-          <img src="/images/chip.svg" className={`preview-card-chip preview-card-chip_${order.bigChip ? "big" : "small"}`} />
+          <img src="/images/chip.svg" className="preview-card-chip preview-card-chip_small" />
         </div>
 
-        <div id="preview-card-b" className={`preview-card preview-card_${order.color} ${order.logoDeactive ? "preview-card_logo-deactive" : ""}`}>
+        <div id="preview-card-b" className={`preview-card preview-card_${order.color}`}>
           <div className="preview-card-img-cont" dangerouslySetInnerHTML={{ __html: sideB }} />
           <div className="preview-card-magnetic-stripe" />
           <div className="preview-card-signature-stripe" />
-          <div className="preview-card-logo" />
         </div>
       </div>
 
