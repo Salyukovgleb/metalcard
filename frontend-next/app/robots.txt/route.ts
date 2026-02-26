@@ -1,10 +1,4 @@
-function normalizeBaseUrl(value: string | undefined): string {
-  const trimmed = (value ?? "").trim();
-  if (!trimmed) {
-    return "";
-  }
-  return trimmed.endsWith("/") ? trimmed.slice(0, -1) : trimmed;
-}
+import { normalizePublicBaseUrl } from "@/lib/public-base-url";
 
 function externalBaseUrl(request: Request): string {
   const xForwardedHost = (request.headers.get("x-forwarded-host") ?? "").trim();
@@ -26,7 +20,7 @@ function externalBaseUrl(request: Request): string {
 }
 
 export async function GET(request: Request) {
-  const base = normalizeBaseUrl(process.env.SITE_BASE_URL) || normalizeBaseUrl(externalBaseUrl(request));
+  const base = normalizePublicBaseUrl(process.env.SITE_BASE_URL) || normalizePublicBaseUrl(externalBaseUrl(request)) || "https://metalcards.uz";
   const robots = `User-agent: *
 Allow: /
 Disallow: /admin/

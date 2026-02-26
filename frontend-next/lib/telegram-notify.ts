@@ -1,5 +1,6 @@
 import type { QueryResultRow } from "pg";
 import { query } from "@/lib/db";
+import { normalizePublicBaseUrl } from "@/lib/public-base-url";
 
 type DbOrderNotifyRow = QueryResultRow & {
   id: number;
@@ -92,14 +93,6 @@ function escapeHtml(value: string): string {
     .replaceAll("'", "&#39;");
 }
 
-function normalizeBaseUrl(value: string | undefined): string {
-  const trimmed = (value ?? "").trim();
-  if (!trimmed) {
-    return "";
-  }
-  return trimmed.endsWith("/") ? trimmed.slice(0, -1) : trimmed;
-}
-
 function externalBaseUrl(request: Request): string {
   const xForwardedHost = (request.headers.get("x-forwarded-host") ?? "").trim();
   const xForwardedProto = (request.headers.get("x-forwarded-proto") ?? "").trim();
@@ -136,11 +129,11 @@ function baseFromPaymeUrls(): string {
 }
 
 function publicBaseUrl(): string {
-  return normalizeBaseUrl(process.env.SITE_BASE_URL) || normalizeBaseUrl(baseFromPaymeUrls()) || "https://metalcards.uz";
+  return normalizePublicBaseUrl(process.env.SITE_BASE_URL) || normalizePublicBaseUrl(baseFromPaymeUrls()) || "https://metalcards.uz";
 }
 
 function telegramApiUrl(): string {
-  return normalizeBaseUrl(process.env.TELEGRAM_API_URL) || "https://api.telegram.org";
+  return normalizePublicBaseUrl(process.env.TELEGRAM_API_URL) || "https://api.telegram.org";
 }
 
 function telegramDebugEnabled(): boolean {
@@ -335,7 +328,7 @@ async function notifyOrderGeneric(orderId: number, statusLabel: string, request?
 
   if (request) {
     try {
-      base = externalBaseUrl(request);
+      base = normalizePublicBaseUrl(externalBaseUrl(request)) || publicBase;
     } catch {
       base = publicBase;
     }

@@ -1,17 +1,10 @@
 import type { StoredOrder } from "@/lib/order-store";
+import { normalizePublicBaseUrl } from "@/lib/public-base-url";
 
 type PaymeLang = "ru" | "uz";
 
 function toBool(value: string | undefined): boolean {
   return (value ?? "").trim().toLowerCase() === "true";
-}
-
-function normalizeBaseUrl(url: string | undefined): string {
-  const value = (url ?? "").trim();
-  if (!value) {
-    return "";
-  }
-  return value.endsWith("/") ? value.slice(0, -1) : value;
 }
 
 function onlyDigits(value: string): string {
@@ -23,14 +16,14 @@ function paymeMerchantId(): string {
 }
 
 function paymeCallbackUrl(): string {
-  return normalizeBaseUrl(process.env.PAYME_CALLBACK_URL);
+  return normalizePublicBaseUrl(process.env.PAYME_CALLBACK_URL);
 }
 
 function siteBaseUrl(): string {
   return (
-    normalizeBaseUrl(process.env.SITE_BASE_URL) ||
-    normalizeBaseUrl(process.env.NEXT_PUBLIC_SITE_BASE_URL) ||
-    normalizeBaseUrl(process.env.NEXT_PUBLIC_SITE_URL)
+    normalizePublicBaseUrl(process.env.SITE_BASE_URL) ||
+    normalizePublicBaseUrl(process.env.NEXT_PUBLIC_SITE_BASE_URL) ||
+    normalizePublicBaseUrl(process.env.NEXT_PUBLIC_SITE_URL)
   );
 }
 

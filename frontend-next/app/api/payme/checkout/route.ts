@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import type { QueryResultRow } from "pg";
 import { applyAnalyticsCookies, recordAnalyticsEvent } from "@/lib/analytics";
 import { query } from "@/lib/db";
+import { normalizePublicBaseUrl } from "@/lib/public-base-url";
 import { rateLimitResponse } from "@/lib/rate-limit";
 
 type DbOrderRow = QueryResultRow & {
@@ -25,14 +26,6 @@ function asNumber(value: unknown, fallback = 0): number {
     }
   }
   return fallback;
-}
-
-function normalizeBaseUrl(url: string | undefined): string {
-  const value = (url ?? "").trim();
-  if (!value) {
-    return "";
-  }
-  return value.endsWith("/") ? value.slice(0, -1) : value;
 }
 
 function onlyDigits(value: string): string {
@@ -139,12 +132,14 @@ export async function GET(request: NextRequest) {
   const name = (request.nextUrl.searchParams.get("name") ?? "").trim();
   const phone = (request.nextUrl.searchParams.get("phone") ?? "").trim();
 
-  const base = externalBaseUrl(request);
+  const base =
+    normalizePublicBaseUrl(process.env.SITE_BASE_URL) ||
+    normalizePublicBaseUrl(externalBaseUrl(request)) ||
+    "https://metalcards.uz";
   const callbackUrl =
-    normalizeBaseUrl(process.env.PAYME_CALLBACK_URL) || `${normalizeBaseUrl(base)}/api/payme/callback/`;
+    normalizePublicBaseUrl(process.env.PAYME_CALLBACK_URL) || `${base}/api/payme/callback/`;
   const returnUrl =
-    normalizeBaseUrl(process.env.PAYME_RETURN_URL) ||
-    `${normalizeBaseUrl(base)}/orders/${orderId}/${order.order_key}/showDataNew/`;
+    normalizePublicBaseUrl(process.env.PAYME_RETURN_URL) || `${base}/orders/${orderId}/${order.order_key}/showDataNew/`;
 
   const pendingResult = await query<QueryResultRow & { id: number }>(
     `
