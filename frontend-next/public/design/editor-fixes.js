@@ -1,11 +1,13 @@
 (function () {
-  const DEFAULT_COLOR_PRICE = 250000;
+  const DEFAULT_COLOR_PRICE = 300000;
   const DELIVERY_PRICE = 50000;
 
   let priceSyncTimer = null;
   let designPriceLoadPromise = null;
+  let colorPriceLoadPromise = null;
   let designPriceById = {};
   let colorPriceByCode = null;
+  let colorPriceByCodeLoaded = false;
 
   function dispatchInput(element) {
     element.dispatchEvent(new Event("input", { bubbles: true }));
@@ -46,12 +48,52 @@
     }
   }
 
+  function loadColorPricesFromApi() {
+    if (colorPriceLoadPromise) {
+      return colorPriceLoadPromise;
+    }
+
+    colorPriceLoadPromise = fetch("/api/colors", { method: "GET" })
+      .then(function (response) {
+        if (!response.ok) {
+          return null;
+        }
+        return response.json();
+      })
+      .then(function (payload) {
+        const nextMap = {};
+        const items = payload && Array.isArray(payload.items) ? payload.items : [];
+
+        items.forEach(function (item) {
+          const code = item && item.code ? String(item.code) : "";
+          const markup = toNumber(item && item.markup, 0);
+          if (code && markup > 0) {
+            nextMap[code] = Math.round(markup);
+          }
+        });
+
+        if (Object.keys(nextMap).length > 0) {
+          colorPriceByCode = nextMap;
+          colorPriceByCodeLoaded = true;
+        }
+      })
+      .catch(function () {
+        // Keep existing prices on error
+      });
+
+    return colorPriceLoadPromise;
+  }
+
   function getColorPriceByCode() {
+    if (colorPriceByCode && colorPriceByCodeLoaded) {
+      return colorPriceByCode;
+    }
+
     if (colorPriceByCode) {
       return colorPriceByCode;
     }
 
-    const parsed = parseJsonNodeText("card-colors-to-price-json", {});
+    var parsed = parseJsonNodeText("card-colors-to-price-json", {});
     colorPriceByCode = parsed && typeof parsed === "object" ? parsed : {};
     return colorPriceByCode;
   }
@@ -170,7 +212,7 @@
       return;
     }
 
-    loadDesignBasePrices().then(schedulePriceSync);
+    Promise.all([loadDesignBasePrices(), loadColorPricesFromApi()]).then(schedulePriceSync);
 
     ["input", "change", "click"].forEach(function (eventName) {
       document.addEventListener(eventName, schedulePriceSync, true);

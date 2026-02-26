@@ -26,7 +26,7 @@ export const cardColors: CardColor[] = [
     logoImg: "/images/cardLogos/Metal-white.svg",
     active: true,
     default: false,
-    price: 150000,
+    price: 300000,
   },
   {
     name: "black-gold-mat",
@@ -40,7 +40,7 @@ export const cardColors: CardColor[] = [
     logoImg: "/images/cardLogos/Metal-gold.svg",
     active: true,
     default: true,
-    price: 200000,
+    price: 300000,
   },
   {
     name: "gold-mirror",
@@ -54,7 +54,7 @@ export const cardColors: CardColor[] = [
     logoImg: "/images/cardLogos/Metal-white.svg",
     active: true,
     default: false,
-    price: 250000,
+    price: 400000,
   },
   {
     name: "gold-mirror-black",
@@ -68,7 +68,7 @@ export const cardColors: CardColor[] = [
     logoImg: "/images/cardLogos/Metal-black.svg",
     active: true,
     default: false,
-    price: 250000,
+    price: 400000,
   },
   {
     name: "black-gold-rib",
@@ -82,7 +82,7 @@ export const cardColors: CardColor[] = [
     logoImg: "/images/cardLogos/Metal-gold.svg",
     active: true,
     default: false,
-    price: 250000,
+    price: 300000,
   },
   {
     name: "red",
@@ -96,7 +96,7 @@ export const cardColors: CardColor[] = [
     logoImg: "/images/cardLogos/Metal-white.svg",
     active: true,
     default: false,
-    price: 250000,
+    price: 400000,
   },
   {
     name: "blue",
@@ -110,7 +110,7 @@ export const cardColors: CardColor[] = [
     logoImg: "/images/cardLogos/Metal-white.svg",
     active: true,
     default: false,
-    price: 250000,
+    price: 400000,
   },
   {
     name: "green",
@@ -124,7 +124,7 @@ export const cardColors: CardColor[] = [
     logoImg: "/images/cardLogos/Metal-white.svg",
     active: true,
     default: false,
-    price: 250000,
+    price: 400000,
   },
 ];
 

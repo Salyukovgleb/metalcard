@@ -157,6 +157,9 @@ async function loadFromDb(): Promise<RuntimeCardColorsConfig> {
     const textRu = asString(params.title_ru ?? params.titleRu ?? row.title, base.textRu || row.title);
     const textUz = asString(params.title_uz ?? params.titleUz ?? row.title, base.textUz || row.title);
 
+    const markupFromDb = asNumber(row.markup, 0);
+    const finalPrice = markupFromDb > 0 ? markupFromDb : base.price;
+
     resolved.push({
       ...base,
       name: code,
@@ -170,7 +173,7 @@ async function loadFromDb(): Promise<RuntimeCardColorsConfig> {
       renderColor: renderColorFromParams(params, base.renderColor),
       active: true,
       default: asBool(params.default, false),
-      price: Math.round(asNumber(row.markup, base.price)),
+      price: Math.round(finalPrice),
     });
   }
 

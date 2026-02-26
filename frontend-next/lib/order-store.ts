@@ -449,7 +449,8 @@ export async function createOrder(input: CreateOrderInput): Promise<StoredOrder>
     const colorCode = color ? asString(color.code, requestedColorCode) : requestedColorCode;
     const colorFallbackKey = resolveCanonicalColorCode(requestedColorCode);
 
-    const colorMarkup = color ? asNumber(color.markup, 0) : FALLBACK_COLOR_MARKUP[colorFallbackKey] ?? 250000;
+    const colorMarkupFromDb = color ? asNumber(color.markup, 0) : 0;
+    const colorMarkup = colorMarkupFromDb > 0 ? colorMarkupFromDb : (FALLBACK_COLOR_MARKUP[colorFallbackKey] ?? 300000);
     const colorTitle = color
       ? asString(color.title, color.code)
       : FALLBACK_COLOR_TITLE[colorFallbackKey] ?? requestedColorCode;

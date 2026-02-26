@@ -5,7 +5,15 @@ import {
   getRecentAnalyticsEvents,
   getTopAnalyticsEvents,
   getTopAnalyticsPaths,
+  getAnalyticsTimeSeries,
+  getAnalyticsConversionFunnel,
 } from "@/lib/analytics-data";
+import {
+  TimeSeriesChart,
+  ConversionFunnel,
+  DonutChart,
+  StatCard,
+} from "@/components/analytics-charts";
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 type DetailKind = "" | "event" | "path" | "metric";
@@ -31,6 +39,16 @@ const EVENT_TITLES: Record<string, string> = {
   promo_order_create: "Создание промо-заказа",
   consent_accept: "Принятие cookies",
   consent_decline: "Отказ от cookies",
+};
+
+const EVENT_COLORS: Record<string, string> = {
+  page_view: "#0f5eb8",
+  order_preview: "#7c3aed",
+  order_submit: "#0d9488",
+  order_create: "#ea580c",
+  promo_order_create: "#dc2626",
+  consent_accept: "#16a34a",
+  consent_decline: "#6b7280",
 };
 
 function firstParam(value: string | string[] | undefined): string {
@@ -171,7 +189,7 @@ export default async function AnalyticsPage(props: { searchParams: SearchParams 
   const resolvedDetailValue =
     rawDetailValue || (resolvedDetailKind === "event" ? eventFilter : resolvedDetailKind === "path" ? pathFilter : "");
 
-  const [overview, topEvents, topPaths, recentEvents, filteredSummary] = await Promise.all([
+  const [overview, topEvents, topPaths, recentEvents, filteredSummary, timeSeries, funnelSteps] = await Promise.all([
     getAnalyticsOverview(),
     getTopAnalyticsEvents(12, hours),
     getTopAnalyticsPaths(12, hours),
@@ -186,6 +204,8 @@ export default async function AnalyticsPage(props: { searchParams: SearchParams 
       eventName: eventFilter || undefined,
       pathContains: pathFilter || undefined,
     }),
+    getAnalyticsTimeSeries(hours),
+    getAnalyticsConversionFunnel(hours),
   ]);
 
   const baseQuery: AnalyticsQuery = {
@@ -198,13 +218,17 @@ export default async function AnalyticsPage(props: { searchParams: SearchParams 
   };
 
   const stats = [
-    { key: "visitors24h", label: "Уникальные посетители (24ч)", value: overview.visitors24h },
-    { key: "visitors7d", label: "Уникальные посетители (7д)", value: overview.visitors7d },
-    { key: "sessions24h", label: "Сессии (24ч)", value: overview.sessions24h },
-    { key: "pageViews24h", label: "Просмотры страниц (24ч)", value: overview.pageViews24h },
-    { key: "events24h", label: "События (24ч)", value: overview.events24h },
-    { key: "orders24h", label: "Созданные заказы (24ч)", value: overview.orders24h },
+    { key: "visitors24h", label: "Уникальные посетители", value: overview.visitors24h, icon: "👥", color: "primary" as const },
+    { key: "sessions24h", label: "Сессии", value: overview.sessions24h, icon: "🔗", color: "purple" as const },
+    { key: "pageViews24h", label: "Просмотры страниц", value: overview.pageViews24h, icon: "📄", color: "teal" as const },
+    { key: "orders24h", label: "Созданные заказы", value: overview.orders24h, icon: "🛒", color: "orange" as const },
   ];
+
+  const eventChartData = topEvents.map((item) => ({
+    label: eventTitle(item.eventName),
+    value: item.count,
+    color: EVENT_COLORS[item.eventName] || "#6b7280",
+  }));
 
   const selectedEvent = topEvents.find((item) => item.eventName === resolvedDetailValue);
   const selectedPath = topPaths.find((item) => item.path === resolvedDetailValue);
@@ -230,10 +254,12 @@ export default async function AnalyticsPage(props: { searchParams: SearchParams 
   const maxEvents = Math.max(1, ...topEvents.map((item) => item.count));
   const maxPaths = Math.max(1, ...topPaths.map((item) => item.count));
 
+  const periodLabel = hours === 24 ? "24 часа" : hours === 72 ? "3 дня" : hours === 168 ? "7 дней" : "30 дней";
+
   return (
     <div className="analytics-page">
       <div className="toolbar" style={{ justifyContent: "space-between" }}>
-        <h1 style={{ margin: 0 }}>Аналитика сайта</h1>
+        <h1 style={{ margin: 0 }}>📊 Аналитика сайта</h1>
         <Link className="btn" href="/">
           На дашборд
         </Link>
@@ -289,25 +315,61 @@ export default async function AnalyticsPage(props: { searchParams: SearchParams 
         </div>
       ) : (
         <>
-          <div className="grid grid-4">
+          {/* Stats Overview */}
+          <div className="analytics-overview-grid">
             {stats.map((stat) => (
-              <Link
+              <StatCard
                 key={stat.key}
-                className="card stat stat-link"
-                href={buildAnalyticsHref(baseQuery, {
-                  detail: "metric",
-                  value: stat.key,
-                })}
-              >
-                <div className="stat-number">{fmt.format(stat.value)}</div>
-                <div className="stat-label">{stat.label}</div>
-              </Link>
+                value={stat.value}
+                label={`${stat.label} (24ч)`}
+                icon={stat.icon}
+                color={stat.color}
+              />
             ))}
           </div>
 
+          {/* Charts Row */}
+          <div className="analytics-charts-grid">
+            <div className="card">
+              <TimeSeriesChart data={timeSeries} />
+            </div>
+            <div className="card">
+              <ConversionFunnel steps={funnelSteps} />
+            </div>
+          </div>
+
+          {/* Donut Charts */}
+          <div className="grid grid-2">
+            <div className="card">
+              <DonutChart data={eventChartData} title={`Распределение событий (${periodLabel})`} />
+            </div>
+            <div className="card">
+              <h3 className="chart-title" style={{ marginBottom: 16 }}>Статистика за период</h3>
+              <div className="grid grid-2" style={{ gap: 12 }}>
+                <div className="stat">
+                  <div className="stat-number">{fmt.format(overview.visitors7d)}</div>
+                  <div className="stat-label">Посетителей за 7 дней</div>
+                </div>
+                <div className="stat">
+                  <div className="stat-number">{fmt.format(overview.events24h)}</div>
+                  <div className="stat-label">Событий за 24ч</div>
+                </div>
+                <div className="stat">
+                  <div className="stat-number">{fmt.format(filteredSummary.events)}</div>
+                  <div className="stat-label">Событий по фильтру</div>
+                </div>
+                <div className="stat">
+                  <div className="stat-number">{fmt.format(filteredSummary.visitors)}</div>
+                  <div className="stat-label">Посетителей по фильтру</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Detail Mode */}
           <div className="card">
             <div className="toolbar" style={{ justifyContent: "space-between" }}>
-              <h2 style={{ margin: 0 }}>Детальный режим</h2>
+              <h2 style={{ margin: 0 }}>🔍 Детальный режим</h2>
               <Link
                 className="btn"
                 href={buildAnalyticsHref(baseQuery, {
@@ -356,9 +418,10 @@ export default async function AnalyticsPage(props: { searchParams: SearchParams 
             )}
           </div>
 
+          {/* Bar Charts */}
           <div className="grid grid-2">
             <div className="card">
-              <h2 style={{ marginTop: 0 }}>График событий за период</h2>
+              <h2 style={{ marginTop: 0 }}>📈 Топ событий за период</h2>
               <p className="analytics-note">Нажмите на полосу, чтобы отфильтровать таблицу действий.</p>
               <div className="analytics-bars">
                 {topEvents.length === 0 ? (
@@ -387,7 +450,13 @@ export default async function AnalyticsPage(props: { searchParams: SearchParams 
                           </div>
                         </div>
                         <div className="analytics-bar-track">
-                          <span className="analytics-bar-fill" style={{ width: `${percent(item.count, maxEvents)}%` }} />
+                          <span
+                            className="analytics-bar-fill"
+                            style={{
+                              width: `${percent(item.count, maxEvents)}%`,
+                              background: EVENT_COLORS[item.eventName] || "linear-gradient(90deg, #2f7bc8, #0f5eb8)",
+                            }}
+                          />
                         </div>
                       </Link>
                     );
@@ -397,7 +466,7 @@ export default async function AnalyticsPage(props: { searchParams: SearchParams 
             </div>
 
             <div className="card">
-              <h2 style={{ marginTop: 0 }}>График страниц за период</h2>
+              <h2 style={{ marginTop: 0 }}>🌐 Топ страниц за период</h2>
               <p className="analytics-note">Клик по строке покажет подробные действия по выбранной странице.</p>
               <div className="analytics-bars">
                 {topPaths.length === 0 ? (
@@ -433,9 +502,10 @@ export default async function AnalyticsPage(props: { searchParams: SearchParams 
             </div>
           </div>
 
+          {/* Tables */}
           <div className="grid grid-2">
             <div className="card">
-              <h2 style={{ marginTop: 0 }}>Топ событий за период</h2>
+              <h2 style={{ marginTop: 0 }}>📋 Топ событий (таблица)</h2>
               <div className="table-wrap">
                 <table>
                   <thead>
@@ -469,7 +539,7 @@ export default async function AnalyticsPage(props: { searchParams: SearchParams 
                                 value: item.eventName,
                               })}
                             >
-                              Детально изучить
+                              Изучить
                             </Link>
                           </td>
                         </tr>
@@ -481,7 +551,7 @@ export default async function AnalyticsPage(props: { searchParams: SearchParams 
             </div>
 
             <div className="card">
-              <h2 style={{ marginTop: 0 }}>Топ страниц за период</h2>
+              <h2 style={{ marginTop: 0 }}>📋 Топ страниц (таблица)</h2>
               <div className="table-wrap">
                 <table>
                   <thead>
@@ -517,7 +587,7 @@ export default async function AnalyticsPage(props: { searchParams: SearchParams 
                                 value: item.path,
                               })}
                             >
-                              Детально изучить
+                              Изучить
                             </Link>
                           </td>
                         </tr>
@@ -532,7 +602,7 @@ export default async function AnalyticsPage(props: { searchParams: SearchParams 
       )}
 
       <div className="card">
-        <h2 style={{ marginTop: 0 }}>Последние действия пользователей</h2>
+        <h2 style={{ marginTop: 0 }}>📝 Последние действия пользователей</h2>
         <div className="table-wrap">
           <table>
             <thead>

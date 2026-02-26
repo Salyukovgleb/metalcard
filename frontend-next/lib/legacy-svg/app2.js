@@ -93,7 +93,7 @@ function drawTextOnSideA(texts=newTextConfigExample) {
     const baseSize = config.size || config.fontSize || null;
     return drawInscrInWidthCont(config.text, config.fontName, config.pos, cont, baseSize);
   }).join('');
-  return `<svg viewbox="0 0 ${SVG_VIEWPORT_WIDTH} ${SVG_VIEWPORT_HEIGHT}" fill="#000000" xmlns="http://www.w3.org/2000/svg">${svg}</svg>`;
+  return `<svg viewBox="0 0 ${SVG_VIEWPORT_WIDTH} ${SVG_VIEWPORT_HEIGHT}" fill="#000000" xmlns="http://www.w3.org/2000/svg">${svg}</svg>`;
 }
 
 function drawTextOnSideB(texts=newTextConfigExample, cardNum = "", cardTime = "") {
@@ -120,7 +120,7 @@ function drawTextOnSideB(texts=newTextConfigExample, cardNum = "", cardTime = ""
   const cardNumSvg = drawPositionedInscr(cardNum, fonts.num, positionsOnSideB.num, fontHeights.small);
   const cardTimeSvg = drawPositionedInscr(cardTime, fonts.num, positionsOnSideB.time, fontHeights.small);
 
-  return `<svg viewbox="0 0 ${SVG_VIEWPORT_WIDTH} ${SVG_VIEWPORT_HEIGHT}" fill="#000000" xmlns="http://www.w3.org/2000/svg">${svg}${cardNumSvg}${cardTimeSvg}</svg>`;
+  return `<svg viewBox="0 0 ${SVG_VIEWPORT_WIDTH} ${SVG_VIEWPORT_HEIGHT}" fill="#000000" xmlns="http://www.w3.org/2000/svg">${svg}${cardNumSvg}${cardTimeSvg}</svg>`;
 }
 
 function drawOnSideANew(texts=newTextConfigExample, designFilePath="") {
@@ -219,7 +219,7 @@ function drawFullInscr(text = "", fontName = "alex-brush", pos = {x1: 0, y1: 0},
   const resultSVG = resultPath.toSVG().replace('/>', ' class="svgdevtextmc"/>');
   const resultBox = resultPath.getBoundingBox();
 
-  return `<svg viewbox="0 0 ${resultBox.x2} ${resultBox.y2}" fill="#000000" xmlns="http://www.w3.org/2000/svg">${resultSVG}</svg>`;
+  return `<svg viewBox="0 0 ${resultBox.x2} ${resultBox.y2}" fill="#000000" xmlns="http://www.w3.org/2000/svg">${resultSVG}</svg>`;
 }
 
 const textConfigExample = [{fontName: "", fontSize: "", pos: "left-top", text: ""}];
@@ -290,5 +290,4 @@ exports.drawOnSideBNew = drawOnSideBNew;
 exports.drawFullInscr = drawFullInscr;
 exports.drawOnSideA = drawOnSideAOld;
 exports.drawOnSideB = drawOnSideBOld;
-
 

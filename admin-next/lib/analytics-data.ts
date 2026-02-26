@@ -11,6 +11,23 @@ export type AnalyticsOverview = {
   orders24h: number;
 };
 
+export type AnalyticsTimeSeriesPoint = {
+  label: string;
+  timestamp: string;
+  visitors: number;
+  sessions: number;
+  pageViews: number;
+  orders: number;
+};
+
+export type AnalyticsTimeSeries = {
+  points: AnalyticsTimeSeriesPoint[];
+  maxVisitors: number;
+  maxSessions: number;
+  maxPageViews: number;
+  maxOrders: number;
+};
+
 export type AnalyticsTopEvent = {
   eventName: string;
   count: number;
@@ -381,5 +398,114 @@ export async function getFilteredAnalyticsSummary(
       pageViews: 0,
       orders: 0,
     };
+  }
+}
+
+export async function getAnalyticsTimeSeries(hours = 24): Promise<AnalyticsTimeSeries> {
+  const emptyResult: AnalyticsTimeSeries = {
+    points: [],
+    maxVisitors: 0,
+    maxSessions: 0,
+    maxPageViews: 0,
+    maxOrders: 0,
+  };
+
+  try {
+    const exists = await tableExists();
+    if (!exists) {
+      return emptyResult;
+    }
+
+    const safeHours = clamp(hours, 1, 24 * 30, 24);
+    const interval = safeHours <= 48 ? "hour" : "day";
+    const truncFormat = interval === "hour" ? "YYYY-MM-DD HH24:00" : "YYYY-MM-DD";
+
+    const result = await query<
+      QueryResultRow & {
+        time_bucket: string;
+        visitors: string;
+        sessions: string;
+        page_views: string;
+        orders: string;
+      }
+    >(
+      `
+        WITH buckets AS (
+          SELECT
+            to_char(date_trunc($3::text, created_at), $4::text) AS time_bucket,
+            visitor_id,
+            session_id,
+            event_name
+          FROM analytics_events
+          WHERE created_at >= now() - make_interval(hours => $1::int)
+        )
+        SELECT
+          time_bucket,
+          count(DISTINCT visitor_id)::text AS visitors,
+          count(DISTINCT session_id)::text AS sessions,
+          count(*) FILTER (WHERE event_name = 'page_view')::text AS page_views,
+          count(*) FILTER (WHERE event_name IN ('order_submit', 'order_create', 'promo_order_create'))::text AS orders
+        FROM buckets
+        GROUP BY time_bucket
+        ORDER BY time_bucket ASC
+        LIMIT $2
+      `,
+      [safeHours, interval === "hour" ? 48 : 30, interval, truncFormat],
+    );
+
+    const points: AnalyticsTimeSeriesPoint[] = result.rows.map((row) => ({
+      label: row.time_bucket,
+      timestamp: row.time_bucket,
+      visitors: asInt(row.visitors),
+      sessions: asInt(row.sessions),
+      pageViews: asInt(row.page_views),
+      orders: asInt(row.orders),
+    }));
+
+    return {
+      points,
+      maxVisitors: Math.max(1, ...points.map((p) => p.visitors)),
+      maxSessions: Math.max(1, ...points.map((p) => p.sessions)),
+      maxPageViews: Math.max(1, ...points.map((p) => p.pageViews)),
+      maxOrders: Math.max(1, ...points.map((p) => p.orders)),
+    };
+  } catch {
+    return emptyResult;
+  }
+}
+
+export async function getAnalyticsConversionFunnel(hours = 24): Promise<{ step: string; count: number }[]> {
+  try {
+    const exists = await tableExists();
+    if (!exists) {
+      return [];
+    }
+
+    const safeHours = clamp(hours, 1, 24 * 30, 24);
+
+    const result = await query<QueryResultRow & { event_name: string; cnt: string }>(
+      `
+        SELECT event_name, count(DISTINCT session_id)::text AS cnt
+        FROM analytics_events
+        WHERE created_at >= now() - make_interval(hours => $1::int)
+          AND event_name IN ('page_view', 'order_preview', 'order_submit', 'order_create')
+        GROUP BY event_name
+      `,
+      [safeHours],
+    );
+
+    const counts: Record<string, number> = {};
+    for (const row of result.rows) {
+      counts[row.event_name] = asInt(row.cnt);
+    }
+
+    return [
+      { step: "Посещения", count: counts.page_view ?? 0 },
+      { step: "Просмотр заказа", count: counts.order_preview ?? 0 },
+      { step: "Отправка формы", count: counts.order_submit ?? 0 },
+      { step: "Создание заказа", count: counts.order_create ?? 0 },
+    ];
+  } catch {
+    return [];
   }
 }
