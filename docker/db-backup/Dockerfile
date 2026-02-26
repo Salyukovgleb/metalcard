@@ -2,10 +2,9 @@ FROM postgres:15
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     python3 \
-    python3-pip \
+    python3-boto3 \
     ca-certificates \
-  && rm -rf /var/lib/apt/lists/* \
-  && pip3 install --no-cache-dir boto3
+  && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /scripts
 
