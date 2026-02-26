@@ -3,14 +3,19 @@ set -eu
 
 ENV_FILE="${1:-.env}"
 
-if [ ! -f "${ENV_FILE}" ]; then
-  echo "Env file not found: ${ENV_FILE}"
+case "${ENV_FILE}" in
+  /*|./*|../*) ENV_PATH="${ENV_FILE}" ;;
+  *) ENV_PATH="./${ENV_FILE}" ;;
+esac
+
+if [ ! -f "${ENV_PATH}" ]; then
+  echo "Env file not found: ${ENV_PATH}"
   exit 1
 fi
 
 # shellcheck disable=SC1090
 set -a
-. "${ENV_FILE}"
+. "${ENV_PATH}"
 set +a
 
 SITE_DOMAIN="${SITE_DOMAIN:-metalcards.uz}"
