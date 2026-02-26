@@ -1,8 +1,8 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { activeCardColors } from "@/lib/card-colors";
 import { getDrawApp } from "@/lib/draw-app";
 import { findOrderByIdAndKey } from "@/lib/order-store";
+import { getRuntimeCardColorsConfig } from "@/lib/runtime-card-colors";
 
 type Props = {
   params: Promise<{ id: string; key: string }>;
@@ -23,7 +23,11 @@ export default async function ShowOrderPage({ params }: Props) {
     notFound();
   }
 
-  const color = activeCardColors.find((cardColor) => cardColor.name === order.color) ?? activeCardColors[0];
+  const colorsConfig = await getRuntimeCardColorsConfig();
+  const color = colorsConfig.activeColors.find((cardColor) => cardColor.name === order.color) ?? colorsConfig.activeColors[0];
+  if (!color) {
+    notFound();
+  }
 
   const drawApp = await getDrawApp();
   const sideA = drawApp.drawTextOnSideA(order.orderData.cardAData);
@@ -31,7 +35,7 @@ export default async function ShowOrderPage({ params }: Props) {
 
   const render =
     order.design && order.folderName
-      ? `/renders/${order.folderName}/${color.renderColor}/${order.design}`
+      ? `/renders/${order.folderName}/${colorsConfig.renderColorByCode[order.color] ?? color.renderColor}/${order.design}`
       : "";
 
   const colorCSS = `

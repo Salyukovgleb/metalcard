@@ -5,14 +5,8 @@ import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { type Locale, mobileHeadingByPage } from "@/lib/site";
 import { toQueryString, type SearchParams } from "@/lib/query";
-import {
-  activeCardColors,
-  cardColorsToPrice,
-  cardColorsToRenderColors,
-  defaultColorName,
-  getActiveCardColorsCSS,
-} from "@/lib/card-colors";
 import { getDesignCategories } from "@/lib/design-data";
+import { getRuntimeCardColorsConfig } from "@/lib/runtime-card-colors";
 
 type Props = {
   locale: Locale;
@@ -50,6 +44,7 @@ const t = {
     inscription: "надпись",
     font: "Шрифт",
     addInscription: "Добавить еще одну надпись",
+    deleteInscription: "Удалить надпись",
     sideFront: "Лицевая",
     sideFront2: "сторона",
     sideBack: "Задняя",
@@ -103,6 +98,7 @@ const t = {
     inscription: "yozuv",
     font: "Shrift",
     addInscription: "Boshqa yorliq qo'shing",
+    deleteInscription: "Yozuvni o'chirish",
     sideFront: "Old",
     sideFront2: "tomoni",
     sideBack: "Orqa",
@@ -179,7 +175,7 @@ function SideInscription({
             {fontsFamily.map((font) => (
               <li key={`${idPrefix}-${font}`} className="configurator__card-data-inscription-cont-list-item">
                 <label className="configurator__card-data-inscription-cont-list-item-label">
-                  <span>{font}</span>
+                  <span style={{ fontFamily: font }}>{font}</span>
                   <input className="visually-hidden" type="radio" name={`side-${idPrefix}-inscription-font`} value={font} />
                 </label>
               </li>
@@ -188,24 +184,31 @@ function SideInscription({
         </div>
       </div>
 
-      <button className="configurator__card-data-inscription-add-btn" id={`side-${idPrefix}-inscription-add-btn`}>
-        {text.addInscription}
-      </button>
+      <div className="configurator__card-data-inscription-actions">
+        <button className="configurator__card-data-inscription-add-btn" id={`side-${idPrefix}-inscription-add-btn`}>
+          {text.addInscription}
+        </button>
+        <button className="configurator__card-data-inscription-delete-btn" id={`side-${idPrefix}-inscription-delete-btn`}>
+          {text.deleteInscription}
+        </button>
+      </div>
     </div>
   );
 }
 
-export default function DefaultDesignPage({ locale, searchParams }: Props) {
+export default async function DefaultDesignPage({ locale, searchParams }: Props) {
   const query = toQueryString(searchParams);
   const currentPath = `/design/${locale}/`;
   const categories = getDesignCategories();
   const text = t[locale as Locale];
+  const colorsConfig = await getRuntimeCardColorsConfig();
+  const activeColors = colorsConfig.activeColors;
 
-  const activeCardColorsNamesJSON = JSON.stringify(activeCardColors.map((color) => color.name));
-  const cardColorsToRenderColorsJSON = JSON.stringify(cardColorsToRenderColors);
-  const cardColorsToPriceJSON = JSON.stringify(cardColorsToPrice);
-  const defaultColorNameJSON = JSON.stringify([defaultColorName]);
-  const cardColorsCSS = getActiveCardColorsCSS();
+  const activeCardColorsNamesJSON = JSON.stringify(activeColors.map((color) => color.name));
+  const cardColorsToRenderColorsJSON = JSON.stringify(colorsConfig.renderColorByCode);
+  const cardColorsToPriceJSON = JSON.stringify(colorsConfig.priceByCode);
+  const defaultColorNameJSON = JSON.stringify([colorsConfig.defaultColorName]);
+  const cardColorsCSS = colorsConfig.css;
 
   return (
     <>
@@ -225,7 +228,7 @@ export default function DefaultDesignPage({ locale, searchParams }: Props) {
       <main>
         <h2 className="visually-hidden">Конструктор</h2>
 
-        {activeCardColors.map((color) => (
+        {activeColors.map((color) => (
           <input
             key={color.name}
             className="visually-hidden"
@@ -378,7 +381,7 @@ export default function DefaultDesignPage({ locale, searchParams }: Props) {
                 <label className="visual__color-container-state-btn" htmlFor="color-state">
                   <span className="visual__color-container-state-btn-color" />
 
-                  {activeCardColors.map((color) => (
+                  {activeColors.map((color) => (
                     <span key={`${color.name}-state`} className="visual__color-container-state-btn-name" id={`${color.name}-card-state`}>
                       {locale === "ru" ? color.textRu : color.textUz}
                     </span>
@@ -386,7 +389,7 @@ export default function DefaultDesignPage({ locale, searchParams }: Props) {
                 </label>
 
                 <div className="visual__color-container-inner">
-                  {activeCardColors.map((color) => (
+                  {activeColors.map((color) => (
                     <label key={`${color.name}-label`} className="visual__color-label" id={`${color.name}-card-label`} htmlFor={`${color.name}-card`}>
                       <span className="visual__color-label-color" />
                       <span className="visual__color-label-name">{locale === "ru" ? color.textRu : color.textUz}</span>
@@ -627,6 +630,7 @@ export default function DefaultDesignPage({ locale, searchParams }: Props) {
       </div>
 
       <Script src={`/design/${locale}.js?ver=17`} strategy="afterInteractive" />
+      <Script src="/design/editor-fixes.js?ver=1" strategy="afterInteractive" />
       <OrderLegalGuard />
     </>
   );

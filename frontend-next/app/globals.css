@@ -89,10 +89,34 @@ body {
   line-height: 1.6;
 }
 
+.configurator__card-data-inscription-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.7291666667vw;
+}
+
+.configurator__card-data-inscription-delete-btn {
+  font: inherit;
+  background: none;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  border-bottom: 0.0520833333vw solid #b8302e;
+  color: #b8302e;
+}
+
 @media (max-width: 768px) {
   .mc-cookie-banner {
     left: 10px;
     right: 10px;
     bottom: 10px;
+  }
+
+  .configurator__card-data-inscription-actions {
+    gap: 2.2222222222vw;
+  }
+
+  .configurator__card-data-inscription-delete-btn {
+    border-bottom-width: 0.2222222222vw;
   }
 }

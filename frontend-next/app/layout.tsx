@@ -12,6 +12,7 @@ const fontFaceCss = `
       url('/fonts/gilroy-light.ttf') format('truetype');
   font-weight: 300;
   font-style: normal;
+  font-display: swap;
 }
 @font-face {
   font-family: "Beware";
@@ -20,6 +21,7 @@ const fontFaceCss = `
       url('/fonts/beware-regular.ttf') format('truetype');
   font-weight: 400;
   font-style: normal;
+  font-display: swap;
 }
 @font-face {
   font-family: "Card";
@@ -28,6 +30,90 @@ const fontFaceCss = `
       url('/fonts/card-regular.ttf') format('truetype');
   font-weight: 400;
   font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Alex Brush";
+  src: url('/fonts/alexbrush-regular.woff2') format('woff2'),
+      url('/fonts/alexbrush-regular.woff') format('woff'),
+      url('/fonts/alexbrush-regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Arabella";
+  src: url('/fonts/arabella-medium.woff2') format('woff2'),
+      url('/fonts/arabella-medium.woff') format('woff'),
+      url('/fonts/arabella-medium.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Bodoni";
+  src: url('/fonts/bodoni-bold.woff2') format('woff2'),
+      url('/fonts/bodoni-bold.woff') format('woff'),
+      url('/fonts/bodoni-bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Candlescript";
+  src: url('/fonts/candlescript.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Castileo";
+  src: url('/fonts/castileo.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Lombardia";
+  src: url('/fonts/lombardia.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Monotype Corsiva";
+  src: url('/fonts/monotype-corsiva.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Porcelain";
+  src: url('/fonts/porcelain.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Postmaster";
+  src: url('/fonts/postmaster.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Racing Catalogue";
+  src: url('/fonts/racing-catalogue.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Resphekt";
+  src: url('/fonts/resphekt.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
 }
 `;
 

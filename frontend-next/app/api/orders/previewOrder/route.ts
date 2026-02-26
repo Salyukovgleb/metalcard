@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 import type { QueryResultRow } from "pg";
-import { cardColorsToRenderColors } from "@/lib/card-colors";
 import { applyAnalyticsCookies, recordAnalyticsEvent } from "@/lib/analytics";
 import { query } from "@/lib/db";
 import { extractFolderFromSvg, extractRenderIdFromSvg } from "@/lib/design-media";
 import { getDrawApp } from "@/lib/draw-app";
 import type { OrderPayload } from "@/lib/order-store";
+import { getRuntimeCardColorsConfig } from "@/lib/runtime-card-colors";
 
 type DbDesignRow = QueryResultRow & { id: number; category: string | null; svg_orig: string };
 
@@ -41,6 +41,7 @@ export async function POST(request: Request) {
     const drawApp = await getDrawApp();
     const sideA = drawApp.drawTextOnSideA(normalizedPayload.cardAData);
     const sideB = drawApp.drawTextOnSideB(normalizedPayload.cardBData, normalizedPayload.cardNum, normalizedPayload.cardTime);
+    const colorsConfig = await getRuntimeCardColorsConfig();
 
     const response = NextResponse.json({
       forPreview: {
@@ -49,7 +50,7 @@ export async function POST(request: Request) {
         color: normalizedPayload.color,
         logoDeactive: false,
         bigChip: false,
-        render: `/renders/${folderName}/${cardColorsToRenderColors[normalizedPayload.color] ?? "white"}/${renderId}`,
+        render: `/renders/${folderName}/${colorsConfig.renderColorByCode[normalizedPayload.color] ?? "white"}/${renderId}`,
       },
       forOrder: normalizedPayload,
     });

@@ -6,16 +6,11 @@ import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { type Locale, mobileHeadingByPage } from "@/lib/site";
 import { toQueryString, type SearchParams } from "@/lib/query";
-import {
-  activeCardColors,
-  cardColorsToRenderColors,
-  defaultColorName,
-  getCardColorCSS,
-} from "@/lib/card-colors";
+import { getCardColorCSS } from "@/lib/card-colors";
 import { getPromoByUri } from "@/lib/promo-data";
+import { getRuntimeCardColorsConfig } from "@/lib/runtime-card-colors";
 
 const fontsFamily = [
-  "Gilroy",
   "Alex Brush",
   "Arabella",
   "Bodoni",
@@ -53,6 +48,7 @@ const text = {
     inscription: "надпись",
     font: "Шрифт",
     addInscription: "Добавить еще одну надпись",
+    deleteInscription: "Удалить надпись",
     total: "общая сумма",
     sum: "сум",
     order: "Закажи",
@@ -96,6 +92,7 @@ const text = {
     inscription: "yozuv",
     font: "Shrift",
     addInscription: "Boshqa yorliq qo'shing",
+    deleteInscription: "Yozuvni o'chirish",
     total: "umumiy qiymat",
     sum: "so'm",
     order: "Buyurtma",
@@ -154,7 +151,7 @@ function Inscription({ idPrefix, locale }: { idPrefix: "a" | "b"; locale: Locale
             {fontsFamily.map((font) => (
               <li key={`${idPrefix}-${font}`} className="configurator__card-data-inscription-cont-list-item">
                 <label className="configurator__card-data-inscription-cont-list-item-label">
-                  <span>{font}</span>
+                  <span style={{ fontFamily: font }}>{font}</span>
                   <input className="visually-hidden" type="radio" name={`side-${idPrefix}-inscription-font`} value={font} />
                 </label>
               </li>
@@ -163,21 +160,27 @@ function Inscription({ idPrefix, locale }: { idPrefix: "a" | "b"; locale: Locale
         </div>
       </div>
 
-      <button className="configurator__card-data-inscription-add-btn" id={`side-${idPrefix}-inscription-add-btn`}>
-        {copy.addInscription}
-      </button>
+      <div className="configurator__card-data-inscription-actions">
+        <button className="configurator__card-data-inscription-add-btn" id={`side-${idPrefix}-inscription-add-btn`}>
+          {copy.addInscription}
+        </button>
+        <button className="configurator__card-data-inscription-delete-btn" id={`side-${idPrefix}-inscription-delete-btn`}>
+          {copy.deleteInscription}
+        </button>
+      </div>
     </div>
   );
 }
 
-export default function DesignPromoPage({ locale, promoSlug, searchParams }: Props) {
+export default async function DesignPromoPage({ locale, promoSlug, searchParams }: Props) {
   const promo = getPromoByUri(promoSlug);
 
   if (!promo) {
     notFound();
   }
 
-  const color = activeCardColors.find((cardColor) => cardColor.name === promo.color);
+  const colorsConfig = await getRuntimeCardColorsConfig();
+  const color = colorsConfig.activeColors.find((cardColor) => cardColor.name === promo.color);
   if (!color) {
     notFound();
   }
@@ -185,7 +188,7 @@ export default function DesignPromoPage({ locale, promoSlug, searchParams }: Pro
   const copy = text[locale as Locale];
   const query = toQueryString(searchParams);
   const currentPath = `/design/${promoSlug}/${locale}/`;
-  const render = `/renders/${promo.folderName}/${cardColorsToRenderColors[promo.color]}/${promo.designID}`;
+  const render = `/renders/${promo.folderName}/${colorsConfig.renderColorByCode[promo.color] ?? color.renderColor}/${promo.designID}`;
 
   const cardColorsCSS = getCardColorCSS(color);
 
@@ -514,13 +517,14 @@ export default function DesignPromoPage({ locale, promoSlug, searchParams }: Pro
         {JSON.stringify([promo.color])}
       </div>
       <div className="visually-hidden" id="card-colors-to-render-colors-json">
-        {JSON.stringify(cardColorsToRenderColors)}
+        {JSON.stringify(colorsConfig.renderColorByCode)}
       </div>
       <div className="visually-hidden" id="default-color-name-json">
-        {JSON.stringify([defaultColorName])}
+        {JSON.stringify([colorsConfig.defaultColorName])}
       </div>
 
       <Script src={`/design-promo/${locale}.js?ver=17`} strategy="afterInteractive" />
+      <Script src="/design/editor-fixes.js?ver=1" strategy="afterInteractive" />
       <OrderLegalGuard />
     </>
   );
