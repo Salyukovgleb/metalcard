@@ -3,6 +3,7 @@ import type { QueryResultRow } from "pg";
 import { cardColorsToRenderColors } from "@/lib/card-colors";
 import { applyAnalyticsCookies, recordAnalyticsEvent } from "@/lib/analytics";
 import { query } from "@/lib/db";
+import { extractFolderFromSvg, extractRenderIdFromSvg } from "@/lib/design-media";
 import { getDrawApp } from "@/lib/draw-app";
 import type { OrderPayload } from "@/lib/order-store";
 
@@ -13,15 +14,6 @@ type DbPromoRow = QueryResultRow & {
   svg_orig: string;
   color_code: string;
 };
-
-function folderFromSvg(svgPath: string): string | null {
-  const normalized = svgPath.replaceAll("\\", "/");
-  const parts = normalized.split("/").filter(Boolean);
-  if (parts.length < 2) {
-    return null;
-  }
-  return parts[parts.length - 2] ?? null;
-}
 
 export async function POST(request: Request) {
   try {
@@ -56,9 +48,10 @@ export async function POST(request: Request) {
       [normalizedPayload.promoID],
     );
     const promo = promoResult.rows[0];
-    const folderName = promo ? promo.category ?? folderFromSvg(promo.svg_orig) : null;
+    const folderName = promo ? promo.category ?? extractFolderFromSvg(promo.svg_orig) : null;
+    const renderId = promo ? extractRenderIdFromSvg(promo.svg_orig) ?? promo.design_id : null;
 
-    if (!promo || !promo.design_id || !promo.color_code || !folderName) {
+    if (!promo || !promo.design_id || !promo.color_code || !folderName || !renderId) {
       return NextResponse.json({ message: "Неправильные данные" }, { status: 400 });
     }
 
@@ -73,7 +66,7 @@ export async function POST(request: Request) {
         color: promo.color_code,
         logoDeactive: false,
         bigChip: false,
-        render: `/renders/${folderName}/${cardColorsToRenderColors[promo.color_code] ?? "white"}/${promo.design_id}`,
+        render: `/renders/${folderName}/${cardColorsToRenderColors[promo.color_code] ?? "white"}/${renderId}`,
       },
       forOrder: normalizedPayload,
     });

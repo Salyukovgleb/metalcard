@@ -5,12 +5,35 @@ import { listDesignCategories, listDesigns } from "@/lib/admin-data";
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 
 const fmt = new Intl.NumberFormat("ru-RU");
+const siteBaseUrl = (process.env.SITE_BASE_URL ?? "https://metalcards.uz").replace(/\/+$/, "");
 
 function firstParam(value: string | string[] | undefined): string {
   if (Array.isArray(value)) {
     return value[0] ?? "";
   }
   return value ?? "";
+}
+
+function extractRenderIdFromSvg(svgOrig: string): number | null {
+  const clean = svgOrig.split("#")[0]?.split("?")[0]?.replaceAll("\\", "/") ?? "";
+  const file = clean.split("/").filter(Boolean).at(-1) ?? "";
+  const noExt = file.replace(/\.[^.]+$/, "").trim();
+  if (!/^\d+$/.test(noExt)) {
+    return null;
+  }
+  const parsed = Number.parseInt(noExt, 10);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+}
+
+function getDesignPreviewSrc(design: { previewWebp: string; svgOrig: string; category: string }): string {
+  if (design.previewWebp) {
+    return design.previewWebp;
+  }
+  const renderId = extractRenderIdFromSvg(design.svgOrig);
+  if (renderId && design.category) {
+    return `${siteBaseUrl}/renders/${design.category}/white/${renderId}.png`;
+  }
+  return design.svgOrig;
 }
 
 export default async function DesignsPage(props: { searchParams: SearchParams }) {
@@ -77,7 +100,7 @@ export default async function DesignsPage(props: { searchParams: SearchParams })
                     <td>
                       {design.previewWebp || design.svgOrig ? (
                         <img
-                          src={design.previewWebp || design.svgOrig}
+                          src={getDesignPreviewSrc(design)}
                           alt={design.title}
                           style={{ width: 70, height: 44, objectFit: "contain", display: "block" }}
                         />

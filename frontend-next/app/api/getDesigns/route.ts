@@ -2,21 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import type { QueryResultRow } from "pg";
 import { getDesignCategories } from "@/lib/design-data";
 import { query } from "@/lib/db";
+import { extractFolderFromSvg, extractRenderIdFromSvg } from "@/lib/design-media";
 
 type DbDesignRow = QueryResultRow & {
   id: number;
   category: string | null;
   svg_orig: string;
 };
-
-function folderFromSvg(svgPath: string): string | null {
-  const normalized = svgPath.replaceAll("\\", "/");
-  const parts = normalized.split("/").filter(Boolean);
-  if (parts.length < 2) {
-    return null;
-  }
-  return parts[parts.length - 2] ?? null;
-}
 
 export async function GET(request: NextRequest) {
   const categoryRaw = request.nextUrl.searchParams.get("category");
@@ -36,10 +28,12 @@ export async function GET(request: NextRequest) {
 
     const designs = result.rows
       .map((row) => {
-        const folderName = row.category ?? folderFromSvg(row.svg_orig) ?? "";
+        const folderName = row.category ?? extractFolderFromSvg(row.svg_orig) ?? "";
         const categoryID = categoryIdByFolder.get(folderName) ?? null;
+        const renderId = extractRenderIdFromSvg(row.svg_orig) ?? row.id;
         return {
-          id: row.id,
+          id: renderId,
+          dbId: row.id,
           folderName,
           categoryID,
         };

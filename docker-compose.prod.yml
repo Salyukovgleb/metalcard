@@ -93,6 +93,7 @@ services:
       DB_USER: ${DB_USER:-metalcard}
       DB_PASSWORD: ${DB_PASSWORD:-change-me}
       DB_SSL: ${DB_SSL:-false}
+      SITE_BASE_URL: ${SITE_BASE_URL:-https://metalcards.uz}
       ADMIN_SESSION_SECRET: ${ADMIN_SESSION_SECRET:-change-me-admin-secret}
       BACKUP_STATUS_FILE: /backup-status/last_backup.json
       USE_S3_MEDIA: ${USE_S3_MEDIA:-true}

@@ -3,23 +3,11 @@ import type { QueryResultRow } from "pg";
 import { cardColorsToRenderColors } from "@/lib/card-colors";
 import { applyAnalyticsCookies, recordAnalyticsEvent } from "@/lib/analytics";
 import { query } from "@/lib/db";
+import { extractFolderFromSvg, extractRenderIdFromSvg } from "@/lib/design-media";
 import { getDrawApp } from "@/lib/draw-app";
 import type { OrderPayload } from "@/lib/order-store";
 
-type DbDesignRow = QueryResultRow & {
-  id: number;
-  category: string | null;
-  svg_orig: string;
-};
-
-function folderFromSvg(svgPath: string): string | null {
-  const normalized = svgPath.replaceAll("\\", "/");
-  const parts = normalized.split("/").filter(Boolean);
-  if (parts.length < 2) {
-    return null;
-  }
-  return parts[parts.length - 2] ?? null;
-}
+type DbDesignRow = QueryResultRow & { id: number; category: string | null; svg_orig: string };
 
 export async function POST(request: Request) {
   try {
@@ -37,13 +25,15 @@ export async function POST(request: Request) {
       `
         SELECT id, category, svg_orig
         FROM designs
-        WHERE id = $1 AND active IS TRUE
-        LIMIT 1
+        WHERE active IS TRUE
+        ORDER BY COALESCE(sort_order, 1000000), id
       `,
-      [payload.design],
     );
-    const design = designResult.rows[0];
-    const folderName = design ? design.category ?? folderFromSvg(design.svg_orig) : null;
+    const design = designResult.rows.find(
+      (item) => item.id === payload.design || extractRenderIdFromSvg(item.svg_orig) === payload.design,
+    );
+    const folderName = design ? design.category ?? extractFolderFromSvg(design.svg_orig) : null;
+    const renderId = design ? extractRenderIdFromSvg(design.svg_orig) ?? design.id : null;
     if (!design || !folderName) {
       return NextResponse.json({ message: "Неправильные данные" }, { status: 400 });
     }
@@ -59,7 +49,7 @@ export async function POST(request: Request) {
         color: normalizedPayload.color,
         logoDeactive: false,
         bigChip: false,
-        render: `/renders/${folderName}/${cardColorsToRenderColors[normalizedPayload.color] ?? "white"}/${normalizedPayload.design}`,
+        render: `/renders/${folderName}/${cardColorsToRenderColors[normalizedPayload.color] ?? "white"}/${renderId}`,
       },
       forOrder: normalizedPayload,
     });

@@ -1,6 +1,7 @@
 import crypto from "node:crypto";
 import type { QueryResultRow } from "pg";
 import { query, withTransaction, type DbClient } from "@/lib/db";
+import { extractFolderFromSvg, extractRenderIdFromSvg } from "@/lib/design-media";
 
 export type OrderCardDataItem = {
   text: string;
@@ -236,19 +237,6 @@ function legacyState(state: string): StoredOrder["state"] {
   return 1;
 }
 
-function folderNameFromSvg(svgPath: string | null | undefined): string | null {
-  const value = (svgPath ?? "").trim();
-  if (!value) {
-    return null;
-  }
-  const normalized = value.replaceAll("\\", "/");
-  const parts = normalized.split("/").filter(Boolean);
-  if (parts.length < 2) {
-    return null;
-  }
-  return parts[parts.length - 2] ?? null;
-}
-
 function randomKey(length = 12): string {
   return crypto.randomBytes(length).toString("hex").slice(0, length);
 }
@@ -289,6 +277,28 @@ async function getActiveDesignById(client: DbClient, id: number): Promise<DbDesi
     [id],
   );
   return result.rows[0] ?? null;
+}
+
+async function getActiveDesignByAnyId(client: DbClient, id: number): Promise<DbDesignRow | null> {
+  const byDbId = await getActiveDesignById(client, id);
+  if (byDbId) {
+    return byDbId;
+  }
+
+  const candidates = await client.query<QueryResultRow & { id: number; svg_orig: string }>(
+    `
+      SELECT id, svg_orig
+      FROM designs
+      WHERE active IS TRUE
+    `,
+  );
+
+  const matched = candidates.rows.find((row) => extractRenderIdFromSvg(row.svg_orig) === id);
+  if (!matched) {
+    return null;
+  }
+
+  return getActiveDesignById(client, matched.id);
 }
 
 async function getActiveColorByCode(client: DbClient, code: string): Promise<DbColorRow | null> {
@@ -357,13 +367,13 @@ function toStoredOrder(row: DbStoredOrderRow): StoredOrder {
     name: asString(row.customer_name, "—"),
     phone: asString(row.customer_phone, "—"),
     amount: Math.round(asNumber(row.total, 0)),
-    design: row.design_id ?? undefined,
     promo: asString(row.promo_code ?? options.promo, "").trim() || undefined,
     color: asString(color.code, ""),
     logoDeactive: asBool(options.logoDeactive ?? options.logo_deactive),
     bigChip: asBool(options.bigChip ?? options.big_chip),
     delivery: normalizeDelivery(deliveryRaw),
-    folderName: folderNameFromSvg(row.svg_orig),
+    design: extractRenderIdFromSvg(row.svg_orig) ?? row.design_id ?? undefined,
+    folderName: extractFolderFromSvg(row.svg_orig),
     orderData: {
       cardAData: normalizeCardLines(texts.A),
       cardBData: normalizeCardLines(texts.B),
@@ -428,7 +438,7 @@ export async function createOrder(input: CreateOrderInput): Promise<StoredOrder>
     }
 
     const designIdCandidate = promo?.design_id ?? payload.design ?? null;
-    const design = designIdCandidate ? await getActiveDesignById(client, designIdCandidate) : await getFirstActiveDesign(client);
+    const design = designIdCandidate ? await getActiveDesignByAnyId(client, designIdCandidate) : await getFirstActiveDesign(client);
     if (!design) {
       throw new Error("design_not_found");
     }
@@ -579,13 +589,13 @@ export async function createOrder(input: CreateOrderInput): Promise<StoredOrder>
       name: input.name.trim() || "—",
       phone: input.phone.trim() || "—",
       amount: Math.round(total),
-      design: design.id,
+      design: extractRenderIdFromSvg(design.svg_orig) ?? design.id,
       promo: promo?.code ?? input.promoName,
       color: colorCode,
       logoDeactive: Boolean(payload.logoDeactive),
       bigChip: Boolean(payload.bigChip),
       delivery: deliveryRaw,
-      folderName: folderNameFromSvg(design.svg_orig),
+      folderName: extractFolderFromSvg(design.svg_orig),
       orderData: {
         cardAData: normalizeCardLines(payload.cardAData),
         cardBData: normalizeCardLines(payload.cardBData),
