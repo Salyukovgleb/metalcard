@@ -119,4 +119,26 @@ body {
   .configurator__card-data-inscription-delete-btn {
     border-bottom-width: 0.2222222222vw;
   }
+
+  /* Keep card number and expiry separated on mobile preview card back side. */
+  .visual__card-side-b-card-num,
+  .visual__card-side-b-card-time {
+    top: 60.4% !important;
+    font-size: 3.2vw !important;
+    line-height: 3.2vw !important;
+    letter-spacing: 0.02em !important;
+  }
+
+  .visual__card-side-b-card-num {
+    left: 4.71% !important;
+    max-width: 68% !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+  }
+
+  .visual__card-side-b-card-time {
+    left: auto !important;
+    right: 6% !important;
+    white-space: nowrap !important;
+  }
 }

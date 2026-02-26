@@ -74,13 +74,11 @@ function drawInscriptions(items: DrawTextItem[]): string {
       const pos = item.pos ?? {};
       const top = clamp(toNumber(pos.top, 50), 0, 100);
       const left = clamp(toNumber(pos.left, 0), 0, 100);
-      const width = clamp(toNumber(pos.width, 100), 5, 100);
       const x = (left / 100) * SVG_WIDTH;
       const y = (top / 100) * SVG_HEIGHT;
-      const targetWidth = (width / 100) * SVG_WIDTH;
       const fontFamily = normalizeFontName(String(item.fontName ?? "Gilroy"));
 
-      return `<text class="svgdevtextmc" x="${x.toFixed(3)}" y="${y.toFixed(3)}" textLength="${targetWidth.toFixed(3)}" lengthAdjust="spacingAndGlyphs" style="font-family:'${escapeXml(fontFamily)}';font-size:20px;dominant-baseline:hanging">${escapeXml(text)}</text>`;
+      return `<text class="svgdevtextmc" x="${x.toFixed(3)}" y="${y.toFixed(3)}" style="font-family:'${escapeXml(fontFamily)}';font-size:20px;dominant-baseline:hanging">${escapeXml(text)}</text>`;
     })
     .join("");
 }

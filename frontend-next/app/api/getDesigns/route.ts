@@ -8,7 +8,21 @@ type DbDesignRow = QueryResultRow & {
   id: number;
   category: string | null;
   svg_orig: string;
+  base_price: string | number | null;
 };
+
+function asNumber(value: unknown): number | null {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return value;
+  }
+  if (typeof value === "string") {
+    const parsed = Number.parseFloat(value);
+    if (Number.isFinite(parsed)) {
+      return parsed;
+    }
+  }
+  return null;
+}
 
 export async function GET(request: NextRequest) {
   const categoryRaw = request.nextUrl.searchParams.get("category");
@@ -19,7 +33,7 @@ export async function GET(request: NextRequest) {
   try {
     const result = await query<DbDesignRow>(
       `
-        SELECT id, category, svg_orig
+        SELECT id, category, svg_orig, base_price
         FROM designs
         WHERE active IS TRUE
         ORDER BY COALESCE(sort_order, 1000000), id
@@ -36,6 +50,7 @@ export async function GET(request: NextRequest) {
           dbId: row.id,
           folderName,
           categoryID,
+          basePrice: asNumber(row.base_price),
         };
       })
       .filter((design) => {

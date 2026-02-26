@@ -630,7 +630,7 @@ export default async function DefaultDesignPage({ locale, searchParams }: Props)
       </div>
 
       <Script src={`/design/${locale}.js?ver=17`} strategy="afterInteractive" />
-      <Script src="/design/editor-fixes.js?ver=1" strategy="afterInteractive" />
+      <Script src="/design/editor-fixes.js?ver=2" strategy="afterInteractive" />
       <OrderLegalGuard />
     </>
   );

@@ -339,18 +339,6 @@ async function getActivePromoById(client: DbClient, promoId: number): Promise<Db
   return result.rows[0] ?? null;
 }
 
-function priceFromOverrides(overridesRaw: unknown, colorCode: string): number | null {
-  if (!colorCode) {
-    return null;
-  }
-  const overrides = asObject(overridesRaw);
-  if (!(colorCode in overrides)) {
-    return null;
-  }
-  const value = asNumber(overrides[colorCode], Number.NaN);
-  return Number.isFinite(value) ? value : null;
-}
-
 function toStoredOrder(row: DbStoredOrderRow): StoredOrder {
   const texts = asObject(row.texts);
   const options = asObject(row.options);
@@ -450,15 +438,11 @@ export async function createOrder(input: CreateOrderInput): Promise<StoredOrder>
     const colorTitle = color ? asString(color.title, color.code) : FALLBACK_COLOR_TITLE[colorCode] ?? colorCode;
     const promoFixedPrice = promo ? asNumber(promo.fixed_price, 0) : 0;
     const designBasePrice = asNumber(design.base_price, 0);
-    const overridePrice = priceFromOverrides(design.price_overrides, colorCode);
-
     let cardPrice = colorMarkup;
     if (promoFixedPrice > 0) {
       cardPrice = promoFixedPrice;
     } else if (designBasePrice > 0) {
       cardPrice = designBasePrice;
-    } else if (overridePrice !== null) {
-      cardPrice = overridePrice;
     }
 
     const deliveryRaw = normalizeDelivery(payload.delivery);

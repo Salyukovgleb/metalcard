@@ -1,20 +1,21 @@
 import { NextRequest } from "next/server";
+import { getDrawApp } from "@/lib/draw-app";
 
 const FONT_ALIASES: Record<string, string> = {
-  gilroy: "Gilroy",
-  "alex-brush": "Alex Brush",
-  arabella: "Arabella",
-  bodoni: "Bodoni",
-  num: "Card",
-  card: "Card",
-  candlescript: "Candlescript",
-  castileo: "Castileo",
-  lombardia: "Lombardia",
-  "monotype-corsiva": "Monotype Corsiva",
-  porcelain: "Porcelain",
-  postmaster: "Postmaster",
-  "racing-catalogue": "Racing Catalogue",
-  resphekt: "Resphekt",
+  gilroy: "gilroy",
+  "alex-brush": "alex-brush",
+  arabella: "arabella",
+  bodoni: "bodoni",
+  num: "num",
+  card: "num",
+  candlescript: "candlescript",
+  castileo: "castileo",
+  lombardia: "lombardia",
+  "monotype-corsiva": "monotype-corsiva",
+  porcelain: "porcelain",
+  postmaster: "postmaster",
+  "racing-catalogue": "racing-catalogue",
+  resphekt: "resphekt",
 };
 
 function escapeXml(value: string): string {
@@ -29,7 +30,7 @@ function escapeXml(value: string): string {
 function resolveFontFamily(rawFont: string): string {
   const trimmed = rawFont.trim();
   if (!trimmed) {
-    return "Gilroy";
+    return "gilroy";
   }
 
   const direct = FONT_ALIASES[trimmed];
@@ -38,7 +39,7 @@ function resolveFontFamily(rawFont: string): string {
   }
 
   const lower = trimmed.toLowerCase();
-  return FONT_ALIASES[lower] ?? trimmed;
+  return FONT_ALIASES[lower] ?? "gilroy";
 }
 
 export async function GET(request: NextRequest) {
@@ -55,11 +56,21 @@ export async function GET(request: NextRequest) {
     });
   }
 
-  const svg = `<svg viewBox="0 0 1000 180" xmlns="http://www.w3.org/2000/svg"><text class="svgdevtextmc" x="0" y="120" textLength="980" lengthAdjust="spacingAndGlyphs" style="font-family:'${escapeXml(fontFamily)}';font-size:120px;dominant-baseline:alphabetic">${escapeXml(safeText)}</text></svg>`;
-
-  return new Response(svg, {
-    headers: {
-      "Content-Type": "image/svg+xml",
-    },
-  });
+  try {
+    const drawApp = await getDrawApp();
+    const svg = drawApp.drawFullInscr(safeText, fontFamily);
+    return new Response(svg, {
+      headers: {
+        "Content-Type": "image/svg+xml",
+      },
+    });
+  } catch {
+    // Last-resort fallback without forced text stretching.
+    const fallbackSvg = `<svg viewBox="0 0 1000 180" xmlns="http://www.w3.org/2000/svg"><text class="svgdevtextmc" x="0" y="120" style="font-family:'${escapeXml(fontFamily)}';font-size:120px;dominant-baseline:alphabetic">${escapeXml(safeText)}</text></svg>`;
+    return new Response(fallbackSvg, {
+      headers: {
+        "Content-Type": "image/svg+xml",
+      },
+    });
+  }
 }

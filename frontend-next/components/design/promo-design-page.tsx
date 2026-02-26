@@ -524,7 +524,7 @@ export default async function DesignPromoPage({ locale, promoSlug, searchParams 
       </div>
 
       <Script src={`/design-promo/${locale}.js?ver=17`} strategy="afterInteractive" />
-      <Script src="/design/editor-fixes.js?ver=1" strategy="afterInteractive" />
+      <Script src="/design/editor-fixes.js?ver=2" strategy="afterInteractive" />
       <OrderLegalGuard />
     </>
   );
