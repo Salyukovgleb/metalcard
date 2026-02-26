@@ -218,4 +218,3 @@ networks:
     name: metalcard_edge
   app:
     name: metalcard_app
-    internal: true

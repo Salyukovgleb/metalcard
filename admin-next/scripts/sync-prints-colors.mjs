@@ -339,6 +339,57 @@ async function createS3Client() {
   };
 }
 
+function stringifyJsonSafe(value) {
+  try {
+    return JSON.stringify(
+      value,
+      (_key, nested) => (typeof nested === "bigint" ? String(nested) : nested),
+      2,
+    );
+  } catch {
+    return String(value);
+  }
+}
+
+function formatErrorForLog(error) {
+  if (error instanceof Error) {
+    const lines = [];
+    lines.push(`message=${error.message || "<empty>"}`);
+    if (error.name) {
+      lines.push(`name=${error.name}`);
+    }
+    const maybeAny = error;
+    if (maybeAny.code) {
+      lines.push(`code=${String(maybeAny.code)}`);
+    }
+    if (maybeAny.errno) {
+      lines.push(`errno=${String(maybeAny.errno)}`);
+    }
+    if (maybeAny.syscall) {
+      lines.push(`syscall=${String(maybeAny.syscall)}`);
+    }
+    if (maybeAny.hostname) {
+      lines.push(`hostname=${String(maybeAny.hostname)}`);
+    }
+    if (maybeAny.$metadata) {
+      lines.push(`metadata=${stringifyJsonSafe(maybeAny.$metadata)}`);
+    }
+    if (maybeAny.cause) {
+      lines.push(`cause=${formatErrorForLog(maybeAny.cause)}`);
+    }
+    if (error.stack) {
+      lines.push(`stack=${error.stack}`);
+    }
+    return lines.join("\n");
+  }
+
+  if (typeof error === "object" && error !== null) {
+    return stringifyJsonSafe(error);
+  }
+
+  return String(error);
+}
+
 async function createPool() {
   const pg = await import("pg");
   const Pool = pg.Pool ?? pg.default?.Pool;
@@ -670,6 +721,11 @@ async function main() {
   }
 
   const s3Client = await createS3Client();
+  console.log(
+    `[sync] s3 target: endpoint=${s3Endpoint()} bucket=${s3Bucket()} region=${s3Region()} pathStyle=${String(
+      s3ForcePathStyle(),
+    )} prefix=${s3Prefix()}`,
+  );
   const pool = await createPool();
   const dbClient = await pool.connect();
 
@@ -681,21 +737,29 @@ async function main() {
     await dbClient.query("BEGIN");
 
     for (let i = 0; i < resolvedDesigns.length; i += 1) {
-      const { row, fileRef } = resolvedDesigns[i];
-      const s3Url = await uploadSvgFileToS3(s3Client, fileRef.absPath, fileRef.relPath);
+      try {
+        const { row, fileRef } = resolvedDesigns[i];
+        const s3Url = await uploadSvgFileToS3(s3Client, fileRef.absPath, fileRef.relPath);
 
-      const result = await upsertDesign(dbClient, {
-        ...row,
-        svgOrig: s3Url,
-      });
+        const result = await upsertDesign(dbClient, {
+          ...row,
+          svgOrig: s3Url,
+        });
 
-      if (result === "inserted") {
-        insertedDesigns += 1;
-      } else {
-        updatedDesigns += 1;
+        if (result === "inserted") {
+          insertedDesigns += 1;
+        } else {
+          updatedDesigns += 1;
+        }
+
+        uploaded += 1;
+      } catch (error) {
+        const context = resolvedDesigns[i];
+        const detail = formatErrorForLog(error);
+        throw new Error(
+          `Failed at design ${context?.row?.id ?? "unknown"} (${context?.fileRef?.relPath ?? "n/a"})\n${detail}`,
+        );
       }
-
-      uploaded += 1;
 
       if ((i + 1) % 25 === 0 || i + 1 === resolvedDesigns.length) {
         console.log(`[sync] designs processed: ${i + 1}/${resolvedDesigns.length}`);
@@ -724,6 +788,6 @@ async function main() {
 }
 
 main().catch((error) => {
-  console.error(`[sync] failed: ${error?.message ?? error}`);
+  console.error(`[sync] failed:\n${formatErrorForLog(error)}`);
   process.exitCode = 1;
 });
