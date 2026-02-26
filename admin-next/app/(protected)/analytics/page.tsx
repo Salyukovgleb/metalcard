@@ -1,16 +1,37 @@
 import Link from "next/link";
 import {
   getAnalyticsOverview,
+  getFilteredAnalyticsSummary,
   getRecentAnalyticsEvents,
   getTopAnalyticsEvents,
   getTopAnalyticsPaths,
 } from "@/lib/analytics-data";
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
+type DetailKind = "" | "event" | "path" | "metric";
+
+type AnalyticsQuery = {
+  hours: string;
+  limit: string;
+  event: string;
+  path: string;
+  detail: string;
+  value: string;
+};
 
 const fmt = new Intl.NumberFormat("ru-RU");
 const HOURS_OPTIONS = [24, 72, 168, 720] as const;
 const LIMIT_OPTIONS = [50, 100, 200] as const;
+
+const EVENT_TITLES: Record<string, string> = {
+  page_view: "Просмотр страницы",
+  order_preview: "Предпросмотр заказа",
+  order_submit: "Отправка заказа",
+  order_create: "Создание заказа",
+  promo_order_create: "Создание промо-заказа",
+  consent_accept: "Принятие cookies",
+  consent_decline: "Отказ от cookies",
+};
 
 function firstParam(value: string | string[] | undefined): string {
   if (Array.isArray(value)) {
@@ -30,6 +51,46 @@ function normalizeHours(value: number): number {
 
 function normalizeLimit(value: number): number {
   return LIMIT_OPTIONS.includes(value as (typeof LIMIT_OPTIONS)[number]) ? value : 100;
+}
+
+function normalizeDetailKind(value: string): DetailKind {
+  if (value === "event" || value === "path" || value === "metric") {
+    return value;
+  }
+  return "";
+}
+
+function buildAnalyticsHref(base: AnalyticsQuery, updates: Partial<AnalyticsQuery>): string {
+  const merged: AnalyticsQuery = {
+    ...base,
+    ...updates,
+  };
+
+  if (!merged.hours) {
+    merged.hours = "24";
+  }
+  if (!merged.limit) {
+    merged.limit = "100";
+  }
+
+  const params = new URLSearchParams();
+  params.set("hours", merged.hours);
+  params.set("limit", merged.limit);
+
+  if (merged.event) {
+    params.set("event", merged.event);
+  }
+  if (merged.path) {
+    params.set("path", merged.path);
+  }
+  if (merged.detail) {
+    params.set("detail", merged.detail);
+  }
+  if (merged.value) {
+    params.set("value", merged.value);
+  }
+
+  return `/analytics?${params.toString()}`;
 }
 
 function displayDate(value: string): string {
@@ -83,6 +144,18 @@ function payloadPreview(payload: Record<string, unknown>): string {
   return `${raw.slice(0, 220)}…`;
 }
 
+function eventTitle(code: string): string {
+  return EVENT_TITLES[code] ?? `Событие: ${code}`;
+}
+
+function percent(current: number, max: number): number {
+  if (!Number.isFinite(current) || !Number.isFinite(max) || max <= 0) {
+    return 0;
+  }
+  const value = Math.round((current / max) * 100);
+  return Math.max(8, Math.min(100, value));
+}
+
 export default async function AnalyticsPage(props: { searchParams: SearchParams }) {
   const searchParams = await props.searchParams;
 
@@ -91,7 +164,14 @@ export default async function AnalyticsPage(props: { searchParams: SearchParams 
   const eventFilter = firstParam(searchParams.event).trim().toLowerCase().slice(0, 64);
   const pathFilter = firstParam(searchParams.path).trim().slice(0, 256);
 
-  const [overview, topEvents, topPaths, recentEvents] = await Promise.all([
+  const rawDetailKind = normalizeDetailKind(firstParam(searchParams.detail).trim().toLowerCase());
+  const rawDetailValue = firstParam(searchParams.value).trim().slice(0, 256);
+
+  const resolvedDetailKind: DetailKind = rawDetailKind || (eventFilter ? "event" : pathFilter ? "path" : "");
+  const resolvedDetailValue =
+    rawDetailValue || (resolvedDetailKind === "event" ? eventFilter : resolvedDetailKind === "path" ? pathFilter : "");
+
+  const [overview, topEvents, topPaths, recentEvents, filteredSummary] = await Promise.all([
     getAnalyticsOverview(),
     getTopAnalyticsEvents(12, hours),
     getTopAnalyticsPaths(12, hours),
@@ -101,10 +181,57 @@ export default async function AnalyticsPage(props: { searchParams: SearchParams 
       eventName: eventFilter || undefined,
       pathContains: pathFilter || undefined,
     }),
+    getFilteredAnalyticsSummary({
+      hours,
+      eventName: eventFilter || undefined,
+      pathContains: pathFilter || undefined,
+    }),
   ]);
 
+  const baseQuery: AnalyticsQuery = {
+    hours: String(hours),
+    limit: String(limit),
+    event: eventFilter,
+    path: pathFilter,
+    detail: resolvedDetailKind,
+    value: resolvedDetailValue,
+  };
+
+  const stats = [
+    { key: "visitors24h", label: "Уникальные посетители (24ч)", value: overview.visitors24h },
+    { key: "visitors7d", label: "Уникальные посетители (7д)", value: overview.visitors7d },
+    { key: "sessions24h", label: "Сессии (24ч)", value: overview.sessions24h },
+    { key: "pageViews24h", label: "Просмотры страниц (24ч)", value: overview.pageViews24h },
+    { key: "events24h", label: "События (24ч)", value: overview.events24h },
+    { key: "orders24h", label: "Созданные заказы (24ч)", value: overview.orders24h },
+  ];
+
+  const selectedEvent = topEvents.find((item) => item.eventName === resolvedDetailValue);
+  const selectedPath = topPaths.find((item) => item.path === resolvedDetailValue);
+
+  let detailTitle = "Выберите график для детализации";
+  let detailDescription =
+    "Нажмите на полосу графика или кнопку «Детально изучить», чтобы сразу отфильтровать журнал действий пользователей.";
+
+  if (resolvedDetailKind === "event" && resolvedDetailValue) {
+    detailTitle = `Детализация по событию: ${eventTitle(resolvedDetailValue)}`;
+    detailDescription = `Код события: ${resolvedDetailValue}. Показаны все записи с этим событием за выбранный период.`;
+  } else if (resolvedDetailKind === "path" && resolvedDetailValue) {
+    detailTitle = "Детализация по странице";
+    detailDescription = `Путь: ${resolvedDetailValue}. Показаны события пользователей по выбранной странице.`;
+  } else if (resolvedDetailKind === "metric") {
+    const selectedMetric = stats.find((item) => item.key === resolvedDetailValue);
+    if (selectedMetric) {
+      detailTitle = `Детализация по метрике: ${selectedMetric.label}`;
+      detailDescription = "Ниже можно сразу перейти к событиям и страницам, которые формируют эту метрику.";
+    }
+  }
+
+  const maxEvents = Math.max(1, ...topEvents.map((item) => item.count));
+  const maxPaths = Math.max(1, ...topPaths.map((item) => item.count));
+
   return (
-    <>
+    <div className="analytics-page">
       <div className="toolbar" style={{ justifyContent: "space-between" }}>
         <h1 style={{ margin: 0 }}>Аналитика сайта</h1>
         <Link className="btn" href="/">
@@ -125,14 +252,20 @@ export default async function AnalyticsPage(props: { searchParams: SearchParams 
           </select>
 
           <label htmlFor="event" style={{ marginBottom: 0 }}>
-            Событие
+            Код события
           </label>
-          <input id="event" name="event" defaultValue={eventFilter} placeholder="order_submit" style={{ width: 220 }} />
+          <input
+            id="event"
+            name="event"
+            defaultValue={eventFilter}
+            placeholder="например order_create"
+            style={{ width: 220 }}
+          />
 
           <label htmlFor="path" style={{ marginBottom: 0 }}>
             Путь
           </label>
-          <input id="path" name="path" defaultValue={pathFilter} placeholder="/design" style={{ width: 220 }} />
+          <input id="path" name="path" defaultValue={pathFilter} placeholder="например /design" style={{ width: 220 }} />
 
           <label htmlFor="limit" style={{ marginBottom: 0 }}>
             Лимит
@@ -157,89 +290,242 @@ export default async function AnalyticsPage(props: { searchParams: SearchParams 
       ) : (
         <>
           <div className="grid grid-4">
-            <div className="card stat">
-              <div className="stat-number">{fmt.format(overview.visitors24h)}</div>
-              <div className="stat-label">Уникальные посетители (24ч)</div>
+            {stats.map((stat) => (
+              <Link
+                key={stat.key}
+                className="card stat stat-link"
+                href={buildAnalyticsHref(baseQuery, {
+                  detail: "metric",
+                  value: stat.key,
+                })}
+              >
+                <div className="stat-number">{fmt.format(stat.value)}</div>
+                <div className="stat-label">{stat.label}</div>
+              </Link>
+            ))}
+          </div>
+
+          <div className="card">
+            <div className="toolbar" style={{ justifyContent: "space-between" }}>
+              <h2 style={{ margin: 0 }}>Детальный режим</h2>
+              <Link
+                className="btn"
+                href={buildAnalyticsHref(baseQuery, {
+                  event: "",
+                  path: "",
+                  detail: "",
+                  value: "",
+                })}
+              >
+                Очистить детализацию
+              </Link>
             </div>
-            <div className="card stat">
-              <div className="stat-number">{fmt.format(overview.visitors7d)}</div>
-              <div className="stat-label">Уникальные посетители (7д)</div>
+            <p className="analytics-note" style={{ marginTop: 0 }}>
+              {detailTitle}
+            </p>
+            <p className="analytics-note">{detailDescription}</p>
+
+            <div className="grid grid-4">
+              <div className="card stat">
+                <div className="stat-number">{fmt.format(filteredSummary.events)}</div>
+                <div className="stat-label">События по текущему фильтру</div>
+              </div>
+              <div className="card stat">
+                <div className="stat-number">{fmt.format(filteredSummary.visitors)}</div>
+                <div className="stat-label">Уникальные посетители</div>
+              </div>
+              <div className="card stat">
+                <div className="stat-number">{fmt.format(filteredSummary.sessions)}</div>
+                <div className="stat-label">Сессии</div>
+              </div>
+              <div className="card stat">
+                <div className="stat-number">{fmt.format(filteredSummary.orders)}</div>
+                <div className="stat-label">Созданные заказы</div>
+              </div>
             </div>
-            <div className="card stat">
-              <div className="stat-number">{fmt.format(overview.sessions24h)}</div>
-              <div className="stat-label">Сессии (24ч)</div>
+
+            {(resolvedDetailKind === "event" || resolvedDetailKind === "path") && (
+              <div className="analytics-note">
+                {resolvedDetailKind === "event" && selectedEvent
+                  ? `Количество выбранного события за период: ${fmt.format(selectedEvent.count)}`
+                  : null}
+                {resolvedDetailKind === "path" && selectedPath
+                  ? `Количество событий по выбранному пути за период: ${fmt.format(selectedPath.count)}`
+                  : null}
+              </div>
+            )}
+          </div>
+
+          <div className="grid grid-2">
+            <div className="card">
+              <h2 style={{ marginTop: 0 }}>График событий за период</h2>
+              <p className="analytics-note">Нажмите на полосу, чтобы отфильтровать таблицу действий.</p>
+              <div className="analytics-bars">
+                {topEvents.length === 0 ? (
+                  <div className="muted">Нет данных</div>
+                ) : (
+                  topEvents.map((item) => {
+                    const isActive = resolvedDetailKind === "event" && resolvedDetailValue === item.eventName;
+                    return (
+                      <Link
+                        key={item.eventName}
+                        className={`analytics-bar-link${isActive ? " active" : ""}`}
+                        href={buildAnalyticsHref(baseQuery, {
+                          event: item.eventName,
+                          path: "",
+                          detail: "event",
+                          value: item.eventName,
+                        })}
+                      >
+                        <div className="analytics-bar-head">
+                          <div>
+                            <div className="analytics-bar-title">{eventTitle(item.eventName)}</div>
+                            <div className="analytics-bar-code">{item.eventName}</div>
+                          </div>
+                          <div className="analytics-bar-value">
+                            {fmt.format(item.count)} · Детально изучить
+                          </div>
+                        </div>
+                        <div className="analytics-bar-track">
+                          <span className="analytics-bar-fill" style={{ width: `${percent(item.count, maxEvents)}%` }} />
+                        </div>
+                      </Link>
+                    );
+                  })
+                )}
+              </div>
             </div>
-            <div className="card stat">
-              <div className="stat-number">{fmt.format(overview.pageViews24h)}</div>
-              <div className="stat-label">Просмотры страниц (24ч)</div>
-            </div>
-            <div className="card stat">
-              <div className="stat-number">{fmt.format(overview.events24h)}</div>
-              <div className="stat-label">События (24ч)</div>
-            </div>
-            <div className="card stat">
-              <div className="stat-number">{fmt.format(overview.orders24h)}</div>
-              <div className="stat-label">Создание заказов (24ч)</div>
+
+            <div className="card">
+              <h2 style={{ marginTop: 0 }}>График страниц за период</h2>
+              <p className="analytics-note">Клик по строке покажет подробные действия по выбранной странице.</p>
+              <div className="analytics-bars">
+                {topPaths.length === 0 ? (
+                  <div className="muted">Нет данных</div>
+                ) : (
+                  topPaths.map((item) => {
+                    const isActive = resolvedDetailKind === "path" && resolvedDetailValue === item.path;
+                    return (
+                      <Link
+                        key={item.path}
+                        className={`analytics-bar-link${isActive ? " active" : ""}`}
+                        href={buildAnalyticsHref(baseQuery, {
+                          event: "",
+                          path: item.path,
+                          detail: "path",
+                          value: item.path,
+                        })}
+                      >
+                        <div className="analytics-bar-head">
+                          <div className="analytics-bar-title cell-break">{item.path || "/"}</div>
+                          <div className="analytics-bar-value">
+                            {fmt.format(item.count)} · Детально изучить
+                          </div>
+                        </div>
+                        <div className="analytics-bar-track">
+                          <span className="analytics-bar-fill" style={{ width: `${percent(item.count, maxPaths)}%` }} />
+                        </div>
+                      </Link>
+                    );
+                  })
+                )}
+              </div>
             </div>
           </div>
 
           <div className="grid grid-2">
             <div className="card">
               <h2 style={{ marginTop: 0 }}>Топ событий за период</h2>
-              <table>
-                <thead>
-                  <tr>
-                    <th>Событие</th>
-                    <th>Количество</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {topEvents.length === 0 ? (
+              <div className="table-wrap">
+                <table>
+                  <thead>
                     <tr>
-                      <td colSpan={2} className="muted">
-                        Нет данных
-                      </td>
+                      <th>Событие</th>
+                      <th>Код</th>
+                      <th>Количество</th>
+                      <th>Действие</th>
                     </tr>
-                  ) : (
-                    topEvents.map((item) => (
-                      <tr key={item.eventName}>
-                        <td>{item.eventName}</td>
-                        <td>{fmt.format(item.count)}</td>
+                  </thead>
+                  <tbody>
+                    {topEvents.length === 0 ? (
+                      <tr>
+                        <td colSpan={4} className="muted">
+                          Нет данных
+                        </td>
                       </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
+                    ) : (
+                      topEvents.map((item) => (
+                        <tr key={item.eventName}>
+                          <td>{eventTitle(item.eventName)}</td>
+                          <td>{item.eventName}</td>
+                          <td>{fmt.format(item.count)}</td>
+                          <td>
+                            <Link
+                              className="btn"
+                              href={buildAnalyticsHref(baseQuery, {
+                                event: item.eventName,
+                                path: "",
+                                detail: "event",
+                                value: item.eventName,
+                              })}
+                            >
+                              Детально изучить
+                            </Link>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
 
             <div className="card">
               <h2 style={{ marginTop: 0 }}>Топ страниц за период</h2>
-              <table>
-                <thead>
-                  <tr>
-                    <th>Путь</th>
-                    <th>События</th>
-                    <th>Посетители</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {topPaths.length === 0 ? (
+              <div className="table-wrap">
+                <table>
+                  <thead>
                     <tr>
-                      <td colSpan={3} className="muted">
-                        Нет данных
-                      </td>
+                      <th>Путь</th>
+                      <th>События</th>
+                      <th>Посетители</th>
+                      <th>Сессии</th>
+                      <th>Действие</th>
                     </tr>
-                  ) : (
-                    topPaths.map((item) => (
-                      <tr key={item.path}>
-                        <td>{item.path || "/"}</td>
-                        <td>{fmt.format(item.count)}</td>
-                        <td>{fmt.format(item.visitors)}</td>
+                  </thead>
+                  <tbody>
+                    {topPaths.length === 0 ? (
+                      <tr>
+                        <td colSpan={5} className="muted">
+                          Нет данных
+                        </td>
                       </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
+                    ) : (
+                      topPaths.map((item) => (
+                        <tr key={item.path}>
+                          <td className="cell-break">{item.path || "/"}</td>
+                          <td>{fmt.format(item.count)}</td>
+                          <td>{fmt.format(item.visitors)}</td>
+                          <td>{fmt.format(item.sessions)}</td>
+                          <td>
+                            <Link
+                              className="btn"
+                              href={buildAnalyticsHref(baseQuery, {
+                                event: "",
+                                path: item.path,
+                                detail: "path",
+                                value: item.path,
+                              })}
+                            >
+                              Детально изучить
+                            </Link>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         </>
@@ -247,60 +533,67 @@ export default async function AnalyticsPage(props: { searchParams: SearchParams 
 
       <div className="card">
         <h2 style={{ marginTop: 0 }}>Последние действия пользователей</h2>
-        <table>
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Дата</th>
-              <th>Событие</th>
-              <th>Путь</th>
-              <th>Пользователь</th>
-              <th>Сессия</th>
-              <th>Данные</th>
-            </tr>
-          </thead>
-          <tbody>
-            {recentEvents.length === 0 ? (
+        <div className="table-wrap">
+          <table>
+            <thead>
               <tr>
-                <td colSpan={7} className="muted">
-                  По выбранным фильтрам данных нет
-                </td>
+                <th>ID</th>
+                <th>Дата</th>
+                <th>Событие</th>
+                <th>Путь</th>
+                <th>Посетитель</th>
+                <th>Сессия</th>
+                <th>Данные</th>
               </tr>
-            ) : (
-              recentEvents.map((event) => (
-                <tr key={event.id}>
-                  <td>{event.id}</td>
-                  <td>{displayDate(event.createdAt)}</td>
-                  <td>{event.eventName}</td>
-                  <td>
-                    <div>{event.path || "/"}</div>
-                    <div className="muted" style={{ fontSize: 12 }}>
-                      {event.referer ? `ref: ${refererHost(event.referer)}` : "ref: —"}
-                    </div>
-                  </td>
-                  <td title={event.visitorId}>
-                    <div>{shortId(event.visitorId)}</div>
-                    <div className="muted" style={{ fontSize: 12 }}>
-                      ip: {event.ip || "—"}
-                    </div>
-                  </td>
-                  <td title={event.sessionId}>
-                    <div>{shortId(event.sessionId)}</div>
-                    <div className="muted" style={{ fontSize: 12 }}>
-                      ua: {shortText(event.userAgent, 38) || "—"}
-                    </div>
-                  </td>
-                  <td>
-                    <pre style={{ fontFamily: "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace", fontSize: 12 }}>
-                      {payloadPreview(event.payload)}
-                    </pre>
+            </thead>
+            <tbody>
+              {recentEvents.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="muted">
+                    По выбранным фильтрам данных нет
                   </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              ) : (
+                recentEvents.map((event) => (
+                  <tr key={event.id}>
+                    <td>{event.id}</td>
+                    <td>{displayDate(event.createdAt)}</td>
+                    <td>
+                      <div>{eventTitle(event.eventName)}</div>
+                      <div className="muted" style={{ fontSize: 12 }}>
+                        {event.eventName}
+                      </div>
+                    </td>
+                    <td className="cell-break">
+                      <div>{event.path || "/"}</div>
+                      <div className="muted" style={{ fontSize: 12 }}>
+                        {event.referer ? `Источник: ${refererHost(event.referer)}` : "Источник: —"}
+                      </div>
+                    </td>
+                    <td title={event.visitorId}>
+                      <div>{shortId(event.visitorId)}</div>
+                      <div className="muted" style={{ fontSize: 12 }}>
+                        IP: {event.ip || "—"}
+                      </div>
+                    </td>
+                    <td title={event.sessionId}>
+                      <div>{shortId(event.sessionId)}</div>
+                      <div className="muted" style={{ fontSize: 12 }}>
+                        Браузер: {shortText(event.userAgent, 38) || "—"}
+                      </div>
+                    </td>
+                    <td>
+                      <pre style={{ fontFamily: "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace", fontSize: 12 }}>
+                        {payloadPreview(event.payload)}
+                      </pre>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
-    </>
+    </div>
   );
 }

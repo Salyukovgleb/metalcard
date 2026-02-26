@@ -4,6 +4,17 @@ import { getAnalyticsOverview, getTopAnalyticsEvents } from "@/lib/analytics-dat
 import { readBackupStatus } from "@/lib/backup-status";
 
 const fmt = new Intl.NumberFormat("ru-RU");
+const EVENT_TITLES: Record<string, string> = {
+  page_view: "Просмотр страницы",
+  order_preview: "Предпросмотр заказа",
+  order_submit: "Отправка заказа",
+  order_create: "Создание заказа",
+  promo_order_create: "Создание промо-заказа",
+};
+
+function eventTitle(code: string): string {
+  return EVENT_TITLES[code] ?? `Событие: ${code}`;
+}
 
 function displayDate(value: string): string {
   if (!value) {
@@ -117,7 +128,7 @@ export default async function DashboardPage() {
               <strong>Топ событий за 24 часа:</strong>{" "}
               {topEvents.length === 0
                 ? "—"
-                : topEvents.map((item) => `${item.eventName} (${item.count})`).join(", ")}
+                : topEvents.map((item) => `${eventTitle(item.eventName)} (${item.count})`).join(", ")}
             </div>
           </>
         )}

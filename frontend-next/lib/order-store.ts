@@ -1,5 +1,6 @@
 import crypto from "node:crypto";
 import type { QueryResultRow } from "pg";
+import { resolveCanonicalColorCode } from "@/lib/color-code-alias";
 import { query, withTransaction, type DbClient } from "@/lib/db";
 import { extractFolderFromSvg, extractRenderIdFromSvg } from "@/lib/design-media";
 
@@ -302,19 +303,31 @@ async function getActiveDesignByAnyId(client: DbClient, id: number): Promise<DbD
 }
 
 async function getActiveColorByCode(client: DbClient, code: string): Promise<DbColorRow | null> {
-  if (!code.trim()) {
+  const raw = asString(code, "").trim();
+  if (!raw) {
     return null;
   }
-  const result = await client.query<DbColorRow>(
-    `
-      SELECT id, code, title, markup
-      FROM colors
-      WHERE code = $1 AND active IS TRUE
-      LIMIT 1
-    `,
-    [code],
-  );
-  return result.rows[0] ?? null;
+
+  const attempts = Array.from(new Set([raw, resolveCanonicalColorCode(raw)]));
+  for (const attempt of attempts) {
+    if (!attempt) {
+      continue;
+    }
+    const result = await client.query<DbColorRow>(
+      `
+        SELECT id, code, title, markup
+        FROM colors
+        WHERE lower(code) = lower($1) AND active IS TRUE
+        LIMIT 1
+      `,
+      [attempt],
+    );
+    if (result.rows[0]) {
+      return result.rows[0];
+    }
+  }
+
+  return null;
 }
 
 async function getActivePromoById(client: DbClient, promoId: number): Promise<DbPromoRow | null> {
@@ -431,11 +444,15 @@ export async function createOrder(input: CreateOrderInput): Promise<StoredOrder>
       throw new Error("design_not_found");
     }
 
-    const colorCode = asString(promo?.color_code ?? payload.color, "").trim();
-    const color = await getActiveColorByCode(client, colorCode);
+    const requestedColorCode = asString(promo?.color_code ?? payload.color, "").trim();
+    const color = await getActiveColorByCode(client, requestedColorCode);
+    const colorCode = color ? asString(color.code, requestedColorCode) : requestedColorCode;
+    const colorFallbackKey = resolveCanonicalColorCode(requestedColorCode);
 
-    const colorMarkup = color ? asNumber(color.markup, 0) : FALLBACK_COLOR_MARKUP[colorCode] ?? 0;
-    const colorTitle = color ? asString(color.title, color.code) : FALLBACK_COLOR_TITLE[colorCode] ?? colorCode;
+    const colorMarkup = color ? asNumber(color.markup, 0) : FALLBACK_COLOR_MARKUP[colorFallbackKey] ?? 250000;
+    const colorTitle = color
+      ? asString(color.title, color.code)
+      : FALLBACK_COLOR_TITLE[colorFallbackKey] ?? requestedColorCode;
     const promoFixedPrice = promo ? asNumber(promo.fixed_price, 0) : 0;
     const designBasePrice = asNumber(design.base_price, 0);
     let cardPrice = colorMarkup;

@@ -12,7 +12,7 @@ export default async function ProtectedLayout({ children }: Readonly<{ children:
   return (
     <div className="admin-shell">
       <aside className="sidebar">
-        <h1>Metalcard Admin</h1>
+        <h1>Админ-панель</h1>
         <div className="muted" style={{ color: "rgba(255,255,255,0.8)", marginBottom: 12 }}>
           {user.fullName}
         </div>

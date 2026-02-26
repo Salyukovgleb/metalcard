@@ -1,5 +1,6 @@
 import type { QueryResultRow } from "pg";
 import { cardColors, getCardColorCSS, type CardColor } from "@/lib/card-colors";
+import { resolveCanonicalColorCode } from "@/lib/color-code-alias";
 import { query } from "@/lib/db";
 
 type DbColorRow = QueryResultRow & {
@@ -142,12 +143,17 @@ async function loadFromDb(): Promise<RuntimeCardColorsConfig> {
     if (!code) {
       continue;
     }
-    const base = STYLE_BY_CODE.get(code);
+
+    const params = asObject(row.params);
+    const canonicalCode = resolveCanonicalColorCode(code, {
+      title: row.title,
+      params,
+    });
+    const base = STYLE_BY_CODE.get(canonicalCode) ?? STYLE_BY_CODE.get("black-silver-mat") ?? FALLBACK_ACTIVE_COLORS[0];
     if (!base) {
       continue;
     }
 
-    const params = asObject(row.params);
     const textRu = asString(params.title_ru ?? params.titleRu ?? row.title, base.textRu || row.title);
     const textUz = asString(params.title_uz ?? params.titleUz ?? row.title, base.textUz || row.title);
 

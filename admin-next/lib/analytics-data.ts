@@ -43,6 +43,14 @@ export type AnalyticsRecentOptions = {
   pathContains?: string;
 };
 
+export type AnalyticsFilteredSummary = {
+  events: number;
+  visitors: number;
+  sessions: number;
+  pageViews: number;
+  orders: number;
+};
+
 function asInt(value: unknown): number {
   if (typeof value === "number" && Number.isFinite(value)) {
     return Math.round(value);
@@ -309,5 +317,69 @@ export async function getRecentAnalyticsEvents(options: AnalyticsRecentOptions =
     }));
   } catch {
     return [];
+  }
+}
+
+export async function getFilteredAnalyticsSummary(
+  options: Omit<AnalyticsRecentOptions, "limit"> = {},
+): Promise<AnalyticsFilteredSummary> {
+  try {
+    const exists = await tableExists();
+    if (!exists) {
+      return {
+        events: 0,
+        visitors: 0,
+        sessions: 0,
+        pageViews: 0,
+        orders: 0,
+      };
+    }
+
+    const safeHours = clamp(options.hours ?? 24, 1, 24 * 30, 24);
+    const safeEventName = sanitizeEventName(options.eventName);
+    const safePathContains = (options.pathContains ?? "").trim().slice(0, 256);
+
+    const result = await query<
+      QueryResultRow & {
+        events_cnt: string;
+        visitors_cnt: string;
+        sessions_cnt: string;
+        page_views_cnt: string;
+        orders_cnt: string;
+      }
+    >(
+      `
+        SELECT
+          count(*)::text AS events_cnt,
+          count(DISTINCT visitor_id)::text AS visitors_cnt,
+          count(DISTINCT session_id)::text AS sessions_cnt,
+          count(*) FILTER (WHERE event_name = 'page_view')::text AS page_views_cnt,
+          count(*) FILTER (
+            WHERE event_name IN ('order_submit', 'order_create', 'promo_order_create')
+          )::text AS orders_cnt
+        FROM analytics_events
+        WHERE created_at >= now() - make_interval(hours => $1::int)
+          AND ($2::text = '' OR event_name = $2::text)
+          AND ($3::text = '' OR path ILIKE '%' || $3::text || '%')
+      `,
+      [safeHours, safeEventName, safePathContains],
+    );
+
+    const row = result.rows[0];
+    return {
+      events: asInt(row?.events_cnt),
+      visitors: asInt(row?.visitors_cnt),
+      sessions: asInt(row?.sessions_cnt),
+      pageViews: asInt(row?.page_views_cnt),
+      orders: asInt(row?.orders_cnt),
+    };
+  } catch {
+    return {
+      events: 0,
+      visitors: 0,
+      sessions: 0,
+      pageViews: 0,
+      orders: 0,
+    };
   }
 }

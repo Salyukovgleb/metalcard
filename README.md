@@ -22,6 +22,7 @@ docker compose up --build -d
 Целевые домены:
 - `metalcards.uz` (и `www.metalcards.uz`) — сайт
 - `admin.metalcards.uz` — админка
+- `paycom.metalcards.uz` — endpoint оплаты/callback Payme
 
 ### 1) DNS
 
@@ -29,6 +30,7 @@ docker compose up --build -d
 - `metalcards.uz` -> `85.198.85.90`
 - `www.metalcards.uz` -> `85.198.85.90`
 - `admin.metalcards.uz` -> `85.198.85.90`
+- `paycom.metalcards.uz` -> `85.198.85.90`
 
 ### 2) Подготовка сервера
 

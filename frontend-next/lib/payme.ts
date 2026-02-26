@@ -19,11 +19,31 @@ function paymeCallbackUrl(): string {
   return normalizePublicBaseUrl(process.env.PAYME_CALLBACK_URL);
 }
 
+function callbackBaseUrl(): string {
+  const callback = paymeCallbackUrl();
+  if (!callback) {
+    return "";
+  }
+  try {
+    return new URL(callback).origin;
+  } catch {
+    return "";
+  }
+}
+
 function siteBaseUrl(): string {
   return (
     normalizePublicBaseUrl(process.env.SITE_BASE_URL) ||
     normalizePublicBaseUrl(process.env.NEXT_PUBLIC_SITE_BASE_URL) ||
     normalizePublicBaseUrl(process.env.NEXT_PUBLIC_SITE_URL)
+  );
+}
+
+function paymeGatewayBaseUrl(): string {
+  return (
+    normalizePublicBaseUrl(process.env.PAYME_PUBLIC_BASE_URL) ||
+    callbackBaseUrl() ||
+    siteBaseUrl()
   );
 }
 
@@ -111,14 +131,31 @@ export function buildLegacyPaymentLinks(input: {
   phone: string;
 }): { paymeLinkRu: string; paymeLinkUz: string } {
   const fallback = buildOrderShowDataPath(input.order);
-  const ru = buildPaymeCheckoutUrl({
+  const gatewayBase = paymeGatewayBaseUrl();
+  const amountSum = Math.max(0, Math.round(input.amountTiyin / 100));
+
+  const buildGatewayUrl = (lang: PaymeLang): string | null => {
+    if (!gatewayBase) {
+      return null;
+    }
+    const params = new URLSearchParams({
+      order_id: String(input.order.id),
+      amount: String(amountSum),
+      lang,
+      name: input.name,
+      phone: input.phone,
+    });
+    return `${gatewayBase}/api/payme/checkout?${params.toString()}`;
+  };
+
+  const ru = buildGatewayUrl("ru") ?? buildPaymeCheckoutUrl({
     order: input.order,
     amountTiyin: input.amountTiyin,
     name: input.name,
     phone: input.phone,
     lang: "ru",
   });
-  const uz = buildPaymeCheckoutUrl({
+  const uz = buildGatewayUrl("uz") ?? buildPaymeCheckoutUrl({
     order: input.order,
     amountTiyin: input.amountTiyin,
     name: input.name,

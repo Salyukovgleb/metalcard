@@ -67,6 +67,7 @@ a {
 
 .content {
   padding: 20px;
+  overflow-x: hidden;
 }
 
 .card {
@@ -80,6 +81,10 @@ a {
 .grid {
   display: grid;
   gap: 14px;
+}
+
+.grid > * {
+  min-width: 0;
 }
 
 .grid-2 {
@@ -178,6 +183,7 @@ td {
   padding: 10px;
   text-align: left;
   vertical-align: top;
+  word-break: break-word;
 }
 
 th {
@@ -262,6 +268,108 @@ pre {
   white-space: pre-wrap;
   word-break: break-word;
   margin: 0;
+}
+
+.table-wrap {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.table-wrap table {
+  min-width: 680px;
+}
+
+.cell-break {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.stat-link {
+  text-decoration: none;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+.stat-link:hover {
+  border-color: #b9cce3;
+  box-shadow: 0 6px 16px rgba(15, 49, 88, 0.08);
+  transform: translateY(-1px);
+}
+
+.analytics-page .analytics-note {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.analytics-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.analytics-bar-link {
+  display: block;
+  text-decoration: none;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px;
+  background: #fbfdff;
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.analytics-bar-link:hover {
+  border-color: #b9cce3;
+  background: #f5f9ff;
+}
+
+.analytics-bar-link.active {
+  border-color: var(--primary);
+  background: #eef5ff;
+}
+
+.analytics-bar-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.analytics-bar-title {
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 1.35;
+}
+
+.analytics-bar-code {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.analytics-bar-value {
+  color: #38506f;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.analytics-bar-track {
+  width: 100%;
+  height: 8px;
+  border-radius: 999px;
+  background: #deebfa;
+  overflow: hidden;
+}
+
+.analytics-bar-fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #2f7bc8, #0f5eb8);
 }
 
 @media (max-width: 1024px) {
