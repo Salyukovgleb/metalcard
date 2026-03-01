@@ -209,6 +209,8 @@ export default async function DefaultDesignPage({ locale, searchParams }: Props)
   const cardColorsToPriceJSON = JSON.stringify(colorsConfig.priceByCode);
   const defaultColorNameJSON = JSON.stringify([colorsConfig.defaultColorName]);
   const cardColorsCSS = colorsConfig.css;
+  const initialColorPrice = Math.round(colorsConfig.priceByCode[colorsConfig.defaultColorName] ?? 0);
+  const initialPriceText = initialColorPrice.toLocaleString("ru-RU");
 
   return (
     <>
@@ -418,7 +420,7 @@ export default async function DefaultDesignPage({ locale, searchParams }: Props)
           <div className="visual__bottom">
             <div>
               <h4 className="visual__bottom-header">{text.total}</h4>
-              <p className="visual__bottom-price">400 000</p>
+              <p className="visual__bottom-price">{initialPriceText}</p>
               <span>{text.sum}</span>
             </div>
 
@@ -443,7 +445,7 @@ export default async function DefaultDesignPage({ locale, searchParams }: Props)
       <section className="buy-section">
         <div>
           <h4 className="buy-section-header">{text.total}</h4>
-          <p className="buy-section-price">250 000</p>
+          <p className="buy-section-price">{initialPriceText}</p>
           <span>{text.sum}</span>
         </div>
 
@@ -567,7 +569,7 @@ export default async function DefaultDesignPage({ locale, searchParams }: Props)
             </p>
 
             <p className="confirm-pre-price">{text.toPay}</p>
-            <p className="confirm-price">250 000</p>
+            <p className="confirm-price">{initialPriceText}</p>
 
             <button className="confirm-pay-me-btn" id="payme-form-create-order">
               <span>{text.confirmOrder}</span>
@@ -629,7 +631,7 @@ export default async function DefaultDesignPage({ locale, searchParams }: Props)
         {defaultColorNameJSON}
       </div>
 
-      <Script src={`/design/${locale}.js?ver=17`} strategy="afterInteractive" />
+      <Script src={`/design/${locale}.js?ver=18`} strategy="afterInteractive" />
       <Script src="/design/editor-fixes.js?ver=2" strategy="afterInteractive" />
       <OrderLegalGuard />
     </>
