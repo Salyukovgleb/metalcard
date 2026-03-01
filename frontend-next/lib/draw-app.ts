@@ -146,7 +146,14 @@ const fallbackDrawApp: DrawApp = {
       return "";
     }
     const safeFont = normalizeFontName(fontName ?? "Gilroy");
-    return `<svg viewBox="0 0 600 120" xmlns="http://www.w3.org/2000/svg"><style>.svgdevtextmc{fill:#373435;}</style><text class="svgdevtextmc" x="0" y="20" style="font-family:'${escapeXml(safeFont)}';font-size:20px;dominant-baseline:hanging">${escapeXml(safeText)}</text></svg>`;
+    const fontSize = 84;
+    const viewBoxHeight = 120;
+    const avgGlyphWidth = 0.62;
+    const viewBoxWidth = Math.max(140, Math.ceil(safeText.length * fontSize * avgGlyphWidth));
+
+    // Keep fallback text visually close to legacy generator sizing:
+    // tight viewBox + large font so inscription is readable in editor.
+    return `<svg viewBox="0 0 ${viewBoxWidth} ${viewBoxHeight}" xmlns="http://www.w3.org/2000/svg"><style>.svgdevtextmc{fill:#f5f5f5;stroke:#0f0f0f;stroke-width:4;paint-order:stroke fill;stroke-linejoin:round;}</style><text class="svgdevtextmc" x="0" y="${Math.round(fontSize * 0.9)}" style="font-family:'${escapeXml(safeFont)}';font-size:${fontSize}px;dominant-baseline:alphabetic">${escapeXml(safeText)}</text></svg>`;
   },
   drawOnSideANew(data: DrawTextInput, designFilePath?: string): string {
     const inscriptions = drawInscriptions(normalizeItems(data));

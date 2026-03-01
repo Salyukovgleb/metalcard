@@ -42,6 +42,15 @@ function resolveFontFamily(rawFont: string): string {
   return FONT_ALIASES[lower] ?? "gilroy";
 }
 
+function buildReadableFallbackSvg(text: string, fontFamily: string): string {
+  const fontSize = 84;
+  const viewBoxHeight = 120;
+  const avgGlyphWidth = 0.62;
+  const viewBoxWidth = Math.max(140, Math.ceil(text.length * fontSize * avgGlyphWidth));
+
+  return `<svg viewBox="0 0 ${viewBoxWidth} ${viewBoxHeight}" xmlns="http://www.w3.org/2000/svg"><style>.svgdevtextmc{fill:#f5f5f5;stroke:#0f0f0f;stroke-width:4;paint-order:stroke fill;stroke-linejoin:round;}</style><text class="svgdevtextmc" x="0" y="${Math.round(fontSize * 0.9)}" style="font-family:'${escapeXml(fontFamily)}';font-size:${fontSize}px;dominant-baseline:alphabetic">${escapeXml(text)}</text></svg>`;
+}
+
 export async function GET(request: NextRequest) {
   const text = request.nextUrl.searchParams.get("text") ?? "";
   const font = request.nextUrl.searchParams.get("font") ?? "gilroy";
@@ -65,8 +74,8 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch {
-    // Last-resort fallback without forced text stretching.
-    const fallbackSvg = `<svg viewBox="0 0 1000 180" xmlns="http://www.w3.org/2000/svg"><text class="svgdevtextmc" x="0" y="120" style="font-family:'${escapeXml(fontFamily)}';font-size:120px;dominant-baseline:alphabetic">${escapeXml(safeText)}</text></svg>`;
+    // Last-resort fallback with tight viewBox to keep inscription readable in editor.
+    const fallbackSvg = buildReadableFallbackSvg(safeText, fontFamily);
     return new Response(fallbackSvg, {
       headers: {
         "Content-Type": "image/svg+xml",
