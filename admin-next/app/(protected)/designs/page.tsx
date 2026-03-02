@@ -5,7 +5,28 @@ import { listDesignCategories, listDesigns } from "@/lib/admin-data";
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 
 const fmt = new Intl.NumberFormat("ru-RU");
-const siteBaseUrl = (process.env.SITE_BASE_URL ?? "https://metalcards.uz").replace(/\/+$/, "");
+const BLOCKED_HOSTS = new Set(["0.0.0.0", "127.0.0.1", "localhost", "::1", "[::1]"]);
+
+function normalizePublicBaseUrl(value: string | undefined): string {
+  const trimmed = (value ?? "").trim().replace(/\/+$/, "");
+  if (!trimmed) {
+    return "";
+  }
+  try {
+    const parsed = new URL(trimmed);
+    if (
+      (parsed.protocol !== "http:" && parsed.protocol !== "https:") ||
+      BLOCKED_HOSTS.has(parsed.hostname.toLowerCase())
+    ) {
+      return "";
+    }
+    return `${parsed.protocol}//${parsed.host}`;
+  } catch {
+    return "";
+  }
+}
+
+const siteBaseUrl = normalizePublicBaseUrl(process.env.SITE_BASE_URL) || "https://metalcards.uz";
 
 function firstParam(value: string | string[] | undefined): string {
   if (Array.isArray(value)) {
@@ -31,7 +52,8 @@ function getDesignPreviewSrc(design: { previewWebp: string; svgOrig: string; cat
   }
   const renderId = extractRenderIdFromSvg(design.svgOrig);
   if (renderId && design.category) {
-    return `${siteBaseUrl}/renders/${design.category}/white/${renderId}.png`;
+    // Use black render in admin list to keep white/vector elements readable.
+    return `${siteBaseUrl}/renders/${design.category}/black/${renderId}.png`;
   }
   return design.svgOrig;
 }

@@ -334,6 +334,8 @@ async function notifyOrderGeneric(orderId: number, statusLabel: string, request?
     }
   }
 
+  base = normalizePublicBaseUrl(base) || publicBase || "https://metalcards.uz";
+
   try {
     const parsed = new URL(base);
     const host = (parsed.hostname ?? "").toLowerCase();

@@ -174,8 +174,19 @@ let cachedDrawApp: DrawApp | null = null;
 let attemptedLegacyLoad = false;
 
 function resolveLegacyDrawModulePath(): string | null {
-  const modulePath = path.resolve(process.cwd(), "lib/legacy-svg/app2.js");
-  return fs.existsSync(modulePath) ? modulePath : null;
+  const cwd = process.cwd();
+  const candidates = [
+    path.resolve(cwd, "lib/legacy-svg/app2.js"),
+    path.resolve(cwd, "frontend-next/lib/legacy-svg/app2.js"),
+  ];
+
+  for (const modulePath of candidates) {
+    if (fs.existsSync(modulePath)) {
+      return modulePath;
+    }
+  }
+
+  return null;
 }
 
 async function loadLegacyDrawApp(): Promise<DrawApp | null> {
@@ -184,12 +195,19 @@ async function loadLegacyDrawApp(): Promise<DrawApp | null> {
     return null;
   }
 
+  const loadedModules: unknown[] = [];
   try {
-    const loaded = await import(pathToFileURL(modulePath).href);
-    const legacyModule = ((loaded as { default?: unknown }).default ?? loaded) as Partial<DrawApp>;
+    // Force native runtime import from filesystem path.
+    loadedModules.push(await import(/* webpackIgnore: true */ pathToFileURL(modulePath).href));
+  } catch {
+    return null;
+  }
+
+  for (const loadedModule of loadedModules) {
+    const legacyModule = ((loadedModule as { default?: unknown })?.default ?? loadedModule) as Partial<DrawApp>;
 
     if (typeof legacyModule.drawTextOnSideA !== "function" || typeof legacyModule.drawTextOnSideB !== "function") {
-      return null;
+      continue;
     }
 
     return {
@@ -208,9 +226,13 @@ async function loadLegacyDrawApp(): Promise<DrawApp | null> {
           ? legacyModule.drawOnSideBNew.bind(legacyModule)
           : legacyModule.drawTextOnSideB.bind(legacyModule),
     };
-  } catch {
+  }
+
+  if (!loadedModules.length) {
     return null;
   }
+
+  return null;
 }
 
 export async function getDrawApp(): Promise<DrawApp> {

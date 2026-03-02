@@ -218,8 +218,10 @@ function drawFullInscr(text = "", fontName = "alex-brush", pos = {x1: 0, y1: 0},
 
   const resultSVG = resultPath.toSVG().replace('/>', ' class="svgdevtextmc"/>');
   const resultBox = resultPath.getBoundingBox();
+  const viewBoxWidth = Math.max(1, resultBox.x2 - resultBox.x1);
+  const viewBoxHeight = Math.max(1, resultBox.y2 - resultBox.y1);
 
-  return `<svg viewBox="0 0 ${resultBox.x2} ${resultBox.y2}" fill="#000000" xmlns="http://www.w3.org/2000/svg">${resultSVG}</svg>`;
+  return `<svg viewBox="${resultBox.x1} ${resultBox.y1} ${viewBoxWidth} ${viewBoxHeight}" fill="#000000" xmlns="http://www.w3.org/2000/svg">${resultSVG}</svg>`;
 }
 
 const textConfigExample = [{fontName: "", fontSize: "", pos: "left-top", text: ""}];
@@ -290,4 +292,3 @@ exports.drawOnSideBNew = drawOnSideBNew;
 exports.drawFullInscr = drawFullInscr;
 exports.drawOnSideA = drawOnSideAOld;
 exports.drawOnSideB = drawOnSideBOld;
-
