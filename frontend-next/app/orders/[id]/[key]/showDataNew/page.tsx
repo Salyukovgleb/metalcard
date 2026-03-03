@@ -85,13 +85,15 @@ export default async function ShowOrderPage({ params }: Props) {
 
       <div className="preview-card-cont">
         <div id="preview-card-a" className={`preview-card preview-card_${order.color}`}>
-          <div className="preview-card-img-cont" dangerouslySetInnerHTML={{ __html: sideA }} />
-          {render ? (
-            <picture>
-              <source srcSet={`${render}.webp`} type="image/webp" />
-              <img src={`${render}.png`} />
-            </picture>
-          ) : null}
+          <div className="preview-card-img-cont">
+            <span dangerouslySetInnerHTML={{ __html: sideA }} />
+            {render ? (
+              <picture>
+                <source srcSet={`${render}.webp`} type="image/webp" />
+                <img src={`${render}.png`} />
+              </picture>
+            ) : null}
+          </div>
           <img src="/images/chip.svg" className="preview-card-chip preview-card-chip_small" />
         </div>
 
