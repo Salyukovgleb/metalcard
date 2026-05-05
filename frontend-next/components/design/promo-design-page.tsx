@@ -496,7 +496,7 @@ export default async function DesignPromoPage({ locale, promoSlug, searchParams 
               <p>
                 {locale === "ru" ? "Оплата наличными" : "naqd to'lov"}
                 <br />
-                {locale === "ru" ? "только по Ташкенту" : "faqat Toshkentda"}
+                {locale === "ru" ? "для любого способа получения" : "har qanday qabul qilish usuli uchun"}
               </p>
             </div>
           </div>

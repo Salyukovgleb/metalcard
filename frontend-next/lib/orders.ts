@@ -35,7 +35,7 @@ export function createOrderResponse(order: StoredOrder, paymentAmount: number, a
     amountText: numberFormat.format(amountText),
     paymeLinkRu: showDataUrl,
     paymeLinkUz: showDataUrl,
-    cacheLink: order.delivery === "delivery" ? "" : `/orders/${order.id}/${order.orderKey}/cachePay/`,
+    cacheLink: `/orders/${order.id}/${order.orderKey}/cachePay/`,
   };
 }
 

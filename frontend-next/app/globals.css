@@ -2,6 +2,8 @@ html,
 body {
   margin: 0;
   padding: 0;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 * {
@@ -69,6 +71,14 @@ body {
   font-family: "Gilroy", sans-serif;
   font-size: 13px;
   line-height: 1.4;
+}
+
+@media (max-width: 768px) {
+  .buy-pop__inner .confirm #confirm-name-input,
+  .buy-pop__inner .confirm #confirm-phone-input {
+    font-size: 16px !important;
+    line-height: 20px !important;
+  }
 }
 
 .legal-doc {
