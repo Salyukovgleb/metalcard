@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SocialIconLinks } from "@/components/social-icons";
 import {
   type ActivePage,
   type Locale,
@@ -132,11 +133,10 @@ export function SiteHeader({ activePage, locale, mobileHeading, query, currentPa
             <div className="header__container-inner-links_mob">
               <Link href="/privacy-policy">{ru ? "политика конфиденциальности" : "maxfiylik siyosati"}</Link>
               <Link href="/user-agreement">{ru ? "пользовательское соглашение" : "foydalanuvchi kelishuvi"}</Link>
-              <a href="https://www.instagram.com/metalcards.uz?utm_medium=copy_link">instagram</a>
-              <a href="http://tiktok.com/@metalcardsuz">tik tok</a>
-              <a href="https://t.me/metalcardsuz">telegram</a>
+              <SocialIconLinks className="mobile-social-links" linkClassName="mobile-social-link" />
               <a href="tel:+998989997799">+998 98 999 77 99</a>
-              <span>© 2022 MetalCards</span>
+              <a href="tel:+998887717171">+998 88 771 71 71</a>
+              <span>© 2022 - 2025 MetalCards</span>
             </div>
           </div>
         </div>

@@ -14,9 +14,9 @@ export function calculateOrderAmount(baseAmount: number, payload: OrderPayload):
   let amountText = Math.round(baseAmount);
 
   if (payload.delivery === "delivery") {
-    amountForPayment += 5_000_000;
-    amountForBase += 50_000;
-    amountText += 50_000;
+    amountForPayment += 3_000_000;
+    amountForBase += 30_000;
+    amountText += 30_000;
   }
 
   return { amountForBase, amountForPayment, amountText };

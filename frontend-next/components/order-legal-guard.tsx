@@ -21,6 +21,14 @@ function legalErrorMessage(): string {
 }
 
 function readLegalState(): LegalState {
+  const combined = document.getElementById("legal-consent") as HTMLInputElement | null;
+  if (combined) {
+    return {
+      privacyAccepted: combined.checked,
+      termsAccepted: combined.checked,
+    };
+  }
+
   const privacy = document.getElementById("legal-privacy-consent") as HTMLInputElement | null;
   const terms = document.getElementById("legal-terms-consent") as HTMLInputElement | null;
   return {

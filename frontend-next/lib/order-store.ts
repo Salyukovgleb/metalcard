@@ -465,7 +465,7 @@ export async function createOrder(input: CreateOrderInput): Promise<StoredOrder>
 
     const deliveryRaw = normalizeDelivery(payload.delivery);
     const receiveMethod = deliveryRaw === "pickup" ? "pickup" : "delivery";
-    const deliveryFee = deliveryRaw === "delivery" ? 50000 : 0;
+    const deliveryFee = deliveryRaw === "delivery" ? 30000 : 0;
     const subtotal = cardPrice;
     const total = subtotal + deliveryFee;
     const orderState = (input.paymentMethod ?? "").trim().toLowerCase() === "cash" ? "cash" : "created";

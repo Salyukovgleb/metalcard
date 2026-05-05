@@ -47,8 +47,10 @@ const t = {
     deleteInscription: "Удалить надпись",
     sideFront: "Лицевая",
     sideFront2: "сторона",
+    sideFrontCurrent: "Лицевая сторона",
     sideBack: "Задняя",
     sideBack2: "сторона",
+    sideBackNext: "Задняя сторона",
     cardNum: "номер карты",
     cardTime: "срок действия",
     removeLogo: "убрать логотип MetalCards",
@@ -65,7 +67,7 @@ const t = {
     name: "Имя",
     phone: "Номер телефона",
     deliveryMethod: "Выберите способ получения",
-    deliveryRegion: "Доставка по вилоятам Узбекистана +50 000 сум",
+    deliveryRegion: "Доставка по вилоятам Узбекистана +30 000 сум",
     deliveryRegion2: "(с вами свяжется наш менеджер)",
     deliveryYandex: "Доставка Яндекс Такси",
     deliveryYandex2: "(оплата клиентом)",
@@ -74,13 +76,14 @@ const t = {
     confirmOrder: "подтвердить заказ",
     orderPayment: "Оплата заказа",
     payVia: "оплатить через",
+    paymeButton: "оплатить через",
     payCash: "оплатить наличными",
     cancel: "отменить заказ",
     cashOnly1: "Оплата наличными",
     cashOnly2: "для любого способа получения",
     acceptPrivacyPrefix: "Я принимаю",
     acceptPrivacyLink: "политику конфиденциальности",
-    acceptTermsPrefix: "Я принимаю",
+    acceptLegalJoin: "и",
     acceptTermsLink: "пользовательское соглашение",
     legalRequired: "Чтобы продолжить, примите политику конфиденциальности и пользовательское соглашение.",
   },
@@ -89,7 +92,7 @@ const t = {
     chooseCategory: "Kategoriya tanlang",
     allDesigns: "Barcha dizaynlar",
     chooseDesign: "Dizayningizni tanlang",
-    next: "Keyinchalik",
+    next: "Oldinga",
     catalog: "Katalog",
     cardWithBigChip: "katta",
     cardWithBigChip2: "chip karta",
@@ -101,8 +104,10 @@ const t = {
     deleteInscription: "Yozuvni o'chirish",
     sideFront: "Old",
     sideFront2: "tomoni",
+    sideFrontCurrent: "Umumiy narx",
     sideBack: "Orqa",
     sideBack2: "tomon",
+    sideBackNext: "Oldinga",
     cardNum: "Karta raqami",
     cardTime: "amal qilish muddati",
     removeLogo: "MetalCards logotipini olib tashlash",
@@ -112,29 +117,30 @@ const t = {
     total: "umumiy qiymat",
     sum: "so'm",
     order: "Buyurtma",
-    confirmDesign: "Dizaynni tasdiqlang",
-    confirm: "tasdiqlang",
-    backToEditor: "muharrirga qaytish",
+    confirmDesign: "Kartangizni oldi va orqa ko’rinishi",
+    confirm: "Tasdiqlayman",
+    backToEditor: "Orqaga qaytish",
     orderConfirm: "Buyurtmani tasdiqlash",
-    name: "Ism",
+    name: "Buyurtmachining Ismi",
     phone: "Telefon raqami",
     deliveryMethod: "Qanday qabul qilishni tanlang",
-    deliveryRegion: "O'zbekiston viloyatlari bo'ylab yetkazib berish +50 000 so'm",
+    deliveryRegion: "O'zbekiston viloyatlari bo'ylab yetkazib berish +30 000 so'm",
     deliveryRegion2: "(menejerimiz siz bilan bog'lanadi)",
-    deliveryYandex: "Yandex Taxi yetkazib berish",
-    deliveryYandex2: "(mijoz to'lovi)",
-    pickup: "Termoq (Osie, 16)",
+    deliveryYandex: "Yandex Taxi orqali",
+    deliveryYandex2: "",
+    pickup: "Ofisdan olib ketish(Geydar Alieva 93)",
     toPay: "to'lash",
     confirmOrder: "buyurtmani tasdiqlang",
-    orderPayment: "Buyurtma to'lash",
+    orderPayment: "To’lov turlari",
     payVia: "orqali to'lash",
-    payCash: "naqd pulda to'lash",
+    paymeButton: "Payme",
+    payCash: "Naqd pul",
     cancel: "buyurtmani bekor qilish",
     cashOnly1: "naqd to'lov",
     cashOnly2: "har qanday qabul qilish usuli uchun",
     acceptPrivacyPrefix: "Men",
     acceptPrivacyLink: "maxfiylik siyosatini",
-    acceptTermsPrefix: "Men",
+    acceptLegalJoin: "va",
     acceptTermsLink: "foydalanuvchi kelishuvini",
     legalRequired: "Davom etish uchun maxfiylik siyosati va foydalanuvchi kelishuvini qabul qiling.",
   },
@@ -309,14 +315,10 @@ export default async function DefaultDesignPage({ locale, searchParams }: Props)
 
             <div className="configurator__card-data-side-chooser">
               <button className="configurator__card-data-side-chooser-btn configurator__card-data-side-chooser-btn_active">
-                {text.sideFront}
-                <br />
-                {text.sideFront2}
+                {text.sideFrontCurrent}
               </button>
               <button id="card-data-a-to-card-data-b-btn" className="configurator__card-data-side-chooser-btn">
-                {text.sideBack}
-                <br />
-                {text.sideBack2}
+                {text.sideBackNext}
               </button>
             </div>
           </div>
@@ -524,8 +526,12 @@ export default async function DefaultDesignPage({ locale, searchParams }: Props)
                 <span />
                 <div>
                   {text.deliveryYandex}
-                  <br />
-                  {text.deliveryYandex2}
+                  {text.deliveryYandex2 ? (
+                    <>
+                      <br />
+                      {text.deliveryYandex2}
+                    </>
+                  ) : null}
                 </div>
               </label>
             </div>
@@ -539,24 +545,15 @@ export default async function DefaultDesignPage({ locale, searchParams }: Props)
             </div>
 
             <div className="confirm-check-cont confirm-check-cont_legal">
-              <input className="visually-hidden" id="legal-privacy-consent" type="checkbox" name="legal-privacy-consent" />
-              <label htmlFor="legal-privacy-consent">
+              <input className="visually-hidden" id="legal-consent" type="checkbox" name="legal-consent" />
+              <label htmlFor="legal-consent">
                 <span />
                 <div>
                   {text.acceptPrivacyPrefix}{" "}
                   <Link href="/privacy-policy" target="_blank" rel="noreferrer">
                     {text.acceptPrivacyLink}
-                  </Link>
-                </div>
-              </label>
-            </div>
-
-            <div className="confirm-check-cont confirm-check-cont_legal">
-              <input className="visually-hidden" id="legal-terms-consent" type="checkbox" name="legal-terms-consent" />
-              <label htmlFor="legal-terms-consent">
-                <span />
-                <div>
-                  {text.acceptTermsPrefix}{" "}
+                  </Link>{" "}
+                  {text.acceptLegalJoin}{" "}
                   <Link href="/user-agreement" target="_blank" rel="noreferrer">
                     {text.acceptTermsLink}
                   </Link>
@@ -585,7 +582,7 @@ export default async function DefaultDesignPage({ locale, searchParams }: Props)
             </button>
 
             <button className="form-payme__buy-btn" id="form-payme-link-payme">
-              <span>{text.payVia}</span>
+              <span>{text.paymeButton}</span>
               <img src="/images/payme.svg" alt="PayMe logo" />
             </button>
 
@@ -631,7 +628,7 @@ export default async function DefaultDesignPage({ locale, searchParams }: Props)
         {defaultColorNameJSON}
       </div>
 
-      <Script src={`/design/${locale}.js?ver=18`} strategy="afterInteractive" />
+      <Script src={`/design/${locale}.js?ver=19`} strategy="afterInteractive" />
       <Script src="/design/editor-fixes.js?ver=2" strategy="afterInteractive" />
       <OrderLegalGuard />
     </>

@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import { SocialIconLinks } from "@/components/social-icons";
 import { getDrawApp } from "@/lib/draw-app";
 import { findOrderByIdAndKey } from "@/lib/order-store";
 import { getRuntimeCardColorsConfig } from "@/lib/runtime-card-colors";
@@ -58,12 +59,13 @@ export default async function ShowOrderPage({ params }: Props) {
 
   return (
     <>
-      <link rel="stylesheet" href="/orders/showDataNew.css?ver=16" />
+      <link rel="stylesheet" href="/orders/showDataNew.css?ver=17" />
       <style dangerouslySetInnerHTML={{ __html: colorCSS }} />
 
       <h1>
         Заказ {order.id} ({stateText})
       </h1>
+      <SocialIconLinks className="order-social-links" linkClassName="order-social-link" />
 
       <div>
         <h2>Данные</h2>

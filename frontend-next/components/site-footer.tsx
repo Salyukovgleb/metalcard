@@ -3,7 +3,7 @@ import Link from "next/link";
 export function SiteFooter() {
   return (
     <footer>
-      <span>© 2022 MetalCards</span>
+      <span>© 2022 - 2025 MetalCards</span>
       <Link href="/privacy-policy">политика конфиденциальности</Link>
       <Link href="/user-agreement">пользовательское соглашение</Link>
       <a href="https://www.instagram.com/metalcards.uz?utm_medium=copy_link">instagram</a>
