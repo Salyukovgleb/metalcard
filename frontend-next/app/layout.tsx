@@ -1,8 +1,11 @@
 import type { Metadata, Viewport } from "next";
+import Script from "next/script";
 import { Suspense } from "react";
 import "./globals.css";
 import { AnalyticsTracker } from "@/components/analytics-tracker";
 import { CookieConsentBanner } from "@/components/cookie-consent-banner";
+
+const GA_MEASUREMENT_ID = "G-2E2F3TEHKF";
 
 const fontFaceCss = `
 @font-face {
@@ -143,6 +146,19 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="ru">
       <body>
+        <Script src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`} strategy="afterInteractive" />
+        <Script
+          id="google-analytics"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+              gtag('config', '${GA_MEASUREMENT_ID}');
+            `,
+          }}
+        />
         <style dangerouslySetInnerHTML={{ __html: fontFaceCss }} />
         <Suspense fallback={null}>
           <AnalyticsTracker />
