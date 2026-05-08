@@ -94,9 +94,9 @@ const text = {
     cardNum: "Karta raqami",
     cardTime: "amal qilish muddati",
     removeLogo: "MetalCards logotipini olib tashlash",
-    inscription: "yozuv",
+    inscription: "",
     font: "Shrift",
-    addInscription: "Boshqa yorliq qo'shing",
+    addInscription: "Yozuv qo'shish",
     deleteInscription: "Yozuvni o'chirish",
     total: "umumiy qiymat",
     sum: "so'm",
@@ -117,7 +117,7 @@ const text = {
     confirmOrder: "buyurtmani tasdiqlang",
     payment: "To’lov turlari",
     payVia: "orqali to'lash",
-    paymeButton: "Payme",
+    paymeButton: "",
     cash: "Naqd pul",
     cancel: "buyurtmani bekor qilish",
     acceptPrivacyPrefix: "Men",
@@ -134,8 +134,7 @@ function Inscription({ idPrefix, locale }: { idPrefix: "a" | "b"; locale: Locale
   return (
     <div className="configurator__card-data-inscription" id={`side-${idPrefix}-inscription`}>
       <div className="configurator__card-data-inscription-desc">
-        <label htmlFor={`side-${idPrefix}-inscription-text`}>{copy.inscription}</label>
-        <p>0/20</p>
+        {copy.inscription ? <label htmlFor={`side-${idPrefix}-inscription-text`}>{copy.inscription}</label> : <span />}
       </div>
       <input
         className="configurator__card-data-inscription-text"
@@ -222,7 +221,7 @@ export default async function DesignPromoPage({ locale, promoSlug, searchParams 
           <h3 className="visually-hidden">Конфигуратор</h3>
 
           <div className="configurator__card-data" id="card-data-side-a">
-            <div className="configurator__card-data-radio-cont">
+            <div className="configurator__card-data-radio-cont" style={locale === "uz" ? { display: "none" } : undefined}>
               <input className="visually-hidden" id="big-chip-input" type="radio" name="big-chip-input" value="true" />
               <label htmlFor="small-chip-input">
                 <input className="visually-hidden" id="small-chip-input" type="radio" name="big-chip-input" value="false" defaultChecked />
@@ -476,7 +475,7 @@ export default async function DesignPromoPage({ locale, promoSlug, searchParams 
             </button>
 
             <button className="form-payme__buy-btn" id="form-payme-link-payme">
-              <span>{copy.paymeButton}</span>
+              {copy.paymeButton ? <span>{copy.paymeButton}</span> : null}
               <img src="/images/payme.svg" alt="PayMe" />
             </button>
 
@@ -491,9 +490,9 @@ export default async function DesignPromoPage({ locale, promoSlug, searchParams 
             <div className="block-cache">
               <img src="/images/block-cache-icon.svg" alt="" />
               <p>
-                {locale === "ru" ? "Оплата наличными" : "naqd to'lov"}
+                {locale === "ru" ? "Оплата наличными" : "Naqd pul bilan ofisimizga kelib kartangizni olib ketishingiz mumkun."}
                 <br />
-                {locale === "ru" ? "для любого способа получения" : "har qanday qabul qilish usuli uchun"}
+                {locale === "ru" ? "для любого способа получения" : "Viloyatlarga yetkazib berish uchun Payme yoki kartaga to'lov qilishingiz shart."}
               </p>
             </div>
           </div>

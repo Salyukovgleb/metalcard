@@ -1,6 +1,7 @@
 (function () {
   const DEFAULT_COLOR_PRICE = 300000;
-  const DELIVERY_PRICE = 50000;
+  const DELIVERY_PRICE = 30000;
+  const LOGO_DEACTIVE_PRICE = 0;
 
   let priceSyncTimer = null;
   let designPriceLoadPromise = null;
@@ -136,7 +137,7 @@
     const designBasePrice = getCurrentDesignBasePrice();
     let amount = designBasePrice > 0 ? designBasePrice : getCurrentColorPrice();
     if (isLogoDeactive()) {
-      amount += DELIVERY_PRICE;
+      amount += LOGO_DEACTIVE_PRICE;
     }
     return Math.round(amount);
   }

@@ -79,7 +79,7 @@ export const mobileHeadingByPage: Record<Locale, Record<ActivePage, string>> = {
     gallery: "galereya",
     how: "bu qanday ishlaydi",
     benefits: "afzalliklar",
-    design: "sizning dizayningis",
+    design: "Kartangiz dizayni",
   },
 };
 
@@ -96,6 +96,6 @@ export const navLabels: Record<Locale, Record<ActivePage, string>> = {
     gallery: "galereya",
     how: "bu qanday ishlaydi",
     benefits: "afzalliklar",
-    design: "sizning dizayningiz",
+    design: "Kartangiz dizayni",
   },
 };

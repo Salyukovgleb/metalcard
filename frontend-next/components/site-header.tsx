@@ -24,6 +24,26 @@ export function SiteHeader({ activePage, locale, mobileHeading, query, currentPa
 
   return (
     <>
+      <style
+        dangerouslySetInnerHTML={{
+          __html: `
+            .header__container-inner-links-row_mob {
+              display: flex;
+              flex-wrap: wrap;
+              align-items: baseline;
+              gap: 4.4444444444vw;
+              margin-bottom: 7.7777777778vw;
+            }
+            .header__container-inner-links-row_mob a {
+              margin-bottom: 0 !important;
+            }
+            .header__container-inner-links-row_mob_phones {
+              justify-content: space-between;
+            }
+          `,
+        }}
+      />
+
       <header className="header">
         <a className="header__logo" href={withQuery(routeFor("main", locale), query)}>
           <h2 className="visually-hidden">
@@ -131,11 +151,15 @@ export function SiteHeader({ activePage, locale, mobileHeading, query, currentPa
             </nav>
 
             <div className="header__container-inner-links_mob">
-              <Link href="/privacy-policy">{ru ? "политика конфиденциальности" : "maxfiylik siyosati"}</Link>
-              <Link href="/user-agreement">{ru ? "пользовательское соглашение" : "foydalanuvchi kelishuvi"}</Link>
+              <div className="header__container-inner-links-row_mob">
+                <Link href="/privacy-policy">{ru ? "политика конфиденциальности" : "maxfiylik siyosati"}</Link>
+                <Link href="/user-agreement">{ru ? "пользовательское соглашение" : "foydalanuvchi kelishuvi"}</Link>
+              </div>
               <SocialIconLinks className="mobile-social-links" linkClassName="mobile-social-link" />
-              <a href="tel:+998989997799">+998 98 999 77 99</a>
-              <a href="tel:+998887717171">+998 88 771 71 71</a>
+              <div className="header__container-inner-links-row_mob header__container-inner-links-row_mob_phones">
+                <a href="tel:+998989997799">+998 98 999 77 99</a>
+                <a href="tel:+998887717171">+998 88 771 71 71</a>
+              </div>
               <span>© 2022 - 2025 MetalCards</span>
             </div>
           </div>

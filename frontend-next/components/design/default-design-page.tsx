@@ -89,18 +89,18 @@ const t = {
   },
   uz: {
     h1: "Karta dizaynini yaratishingiz mumkin bo'lgan sahifa",
-    chooseCategory: "Kategoriya tanlang",
+    chooseCategory: "Dizayn kategoriyasini tanlash",
     allDesigns: "Barcha dizaynlar",
     chooseDesign: "Dizayningizni tanlang",
     next: "Oldinga",
-    catalog: "Katalog",
+    catalog: "Karta dizaynlariga qaytish",
     cardWithBigChip: "katta",
     cardWithBigChip2: "chip karta",
     cardWithSmallChip: "kichik",
     cardWithSmallChip2: "chip karta",
-    inscription: "yozuv",
+    inscription: "",
     font: "Shrift",
-    addInscription: "Boshqa yorliq qo'shing",
+    addInscription: "Yozuv qo'shish",
     deleteInscription: "Yozuvni o'chirish",
     sideFront: "Old",
     sideFront2: "tomoni",
@@ -112,7 +112,7 @@ const t = {
     cardTime: "amal qilish muddati",
     removeLogo: "MetalCards logotipini olib tashlash",
     visual: "Xaritani vizualizatsiya qilish",
-    color: "rang",
+    color: "Karta rangi",
     chooseColor: "Rangni tanlang",
     total: "umumiy qiymat",
     sum: "so'm",
@@ -133,11 +133,11 @@ const t = {
     confirmOrder: "buyurtmani tasdiqlang",
     orderPayment: "To’lov turlari",
     payVia: "orqali to'lash",
-    paymeButton: "Payme",
+    paymeButton: "",
     payCash: "Naqd pul",
     cancel: "buyurtmani bekor qilish",
-    cashOnly1: "naqd to'lov",
-    cashOnly2: "har qanday qabul qilish usuli uchun",
+    cashOnly1: "Naqd pul bilan ofisimizga kelib kartangizni olib ketishingiz mumkun.",
+    cashOnly2: "Viloyatlarga yetkazib berish uchun Payme yoki kartaga to'lov qilishingiz shart.",
     acceptPrivacyPrefix: "Men",
     acceptPrivacyLink: "maxfiylik siyosatini",
     acceptLegalJoin: "va",
@@ -158,8 +158,7 @@ function SideInscription({
   return (
     <div className="configurator__card-data-inscription" id={`side-${idPrefix}-inscription`}>
       <div className="configurator__card-data-inscription-desc">
-        <label htmlFor={`side-${idPrefix}-inscription-text`}>{text.inscription}</label>
-        <p>0/20</p>
+        {text.inscription ? <label htmlFor={`side-${idPrefix}-inscription-text`}>{text.inscription}</label> : <span />}
       </div>
       <input
         className="configurator__card-data-inscription-text"
@@ -298,7 +297,7 @@ export default async function DefaultDesignPage({ locale, searchParams }: Props)
               </button>
             </div>
 
-            <div className="configurator__card-data-radio-cont">
+            <div className="configurator__card-data-radio-cont" style={locale === "uz" ? { display: "none" } : undefined}>
               <input className="visually-hidden" id="big-chip-input" type="radio" name="big-chip-input" value="true" />
               <input className="visually-hidden" id="small-chip-input" type="radio" name="big-chip-input" value="false" defaultChecked />
               <label htmlFor="small-chip-input">
@@ -582,7 +581,7 @@ export default async function DefaultDesignPage({ locale, searchParams }: Props)
             </button>
 
             <button className="form-payme__buy-btn" id="form-payme-link-payme">
-              <span>{text.paymeButton}</span>
+              {text.paymeButton ? <span>{text.paymeButton}</span> : null}
               <img src="/images/payme.svg" alt="PayMe logo" />
             </button>
 
