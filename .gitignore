@@ -28,3 +28,6 @@
 
 # Duplicate origs at repo root (canonical: frontend-next/origs)
 /origs/
+
+# Local Postgres cluster (never commit binary DB files)
+/metalcard_db/data/

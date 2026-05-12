@@ -14,7 +14,7 @@ services:
       - "5433:5432"
     volumes:
       - db_data:/var/lib/postgresql/data
-      - ./Metalcard/metalcard_db/init:/docker-entrypoint-initdb.d:ro
+      - ./metalcard_db/init:/docker-entrypoint-initdb.d:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
       interval: 5s

@@ -1,0 +1,21 @@
+services:
+  db:
+    image: postgres:15
+    container_name: metalcard_db
+    environment:
+      POSTGRES_DB: metalcard
+      POSTGRES_USER: metalcard
+      POSTGRES_PASSWORD: metalcard
+      TZ: UTC
+    # Bind DB port only on the server's public IP
+    ports:
+      - "85.198.85.90:5433:5432"  # host_ip:host_port:container_port
+    volumes:
+      - ./data:/var/lib/postgresql/data
+      - ./init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
