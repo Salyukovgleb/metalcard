@@ -12,6 +12,9 @@
    - money: Design 3006, 3005, 3008 (по title содержит "3006", "3005", "3008")
    - crypto: Design 2004, 2003, 2002, 2001 (по title содержит "2004", "2003", "2002", "2001")
 
+Сайт и заказ берут цену так: если у дизайна base_price > 0 — используется он (фикс), иначе — наценка цвета (colors.markup).
+После импорта с ненулевым base_price у всех принтов сначала запустите scripts/reset_design_prices.py, затем снова setup_prices.py.
+
 Usage:
   python3 scripts/setup_prices.py [--root <repo_root>]
 

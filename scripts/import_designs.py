@@ -3,7 +3,7 @@
 Import SVG designs from the local "origs" folder into the Postgres database.
 
 Usage:
-  python3 scripts/import_designs.py [--root <repo_root>] [--default-price 200000]
+  python3 scripts/import_designs.py [--root <repo_root>] [--default-price 0]
 
 Environment (overrides defaults):
   DB_NAME=metalcard
@@ -37,7 +37,12 @@ except Exception as e:
 def parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser(description="Import SVG designs from origs folder into DB")
     p.add_argument("--root", default=str(Path(__file__).resolve().parents[1]), help="Repo root (default: parent of scripts)")
-    p.add_argument("--default-price", type=float, default=200000.0, help="Default base_price to use for designs")
+    p.add_argument(
+    "--default-price",
+    type=float,
+    default=0.0,
+    help="Default base_price for new rows (0 = price from colors.markup; use setup_prices.py for fixed design prices)",
+  )
     return p.parse_args()
 
 
