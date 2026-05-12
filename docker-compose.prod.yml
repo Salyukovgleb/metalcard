@@ -10,6 +10,10 @@ services:
   db:
     image: postgres:15
     container_name: metalcard_db
+    # Old Docker/kernel (e.g. Ubuntu 16.04) default seccomp blocks syscalls initdb
+    # needs; without this, initdb fails with "popen failure: Operation not permitted".
+    security_opt:
+      - seccomp:unconfined
     environment:
       POSTGRES_DB: ${DB_NAME:-metalcard}
       POSTGRES_USER: ${DB_USER:-metalcard}

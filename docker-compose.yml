@@ -2,6 +2,8 @@ services:
   db:
     image: postgres:15
     container_name: metalcard_db
+    security_opt:
+      - seccomp:unconfined
     environment:
       POSTGRES_DB: ${DB_NAME:-metalcard}
       POSTGRES_USER: ${DB_USER:-metalcard}
