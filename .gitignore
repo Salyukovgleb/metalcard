@@ -21,3 +21,10 @@
 .env
 .env.local
 .env.*.local
+
+# Python
+**/__pycache__/
+*.py[cod]
+
+# Duplicate origs at repo root (canonical: frontend-next/origs)
+/origs/
