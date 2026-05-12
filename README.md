@@ -50,6 +50,16 @@ sudo systemctl enable --now docker
 
 Откройте порты `80` и `443` в firewall/security group.
 
+**Старый Docker (например Ubuntu 16.04):** если `docker compose ...` отвечает `unknown shorthand flag: 'f'`, подкоманды `compose` нет — используйте бинарник **`docker-compose`** (дефис), аргументы те же:
+
+```bash
+cd /root/metalcard   # или ваш реальный путь к клону репозитория
+docker-compose -f docker-compose.prod.yml --env-file .env down
+docker-compose -f docker-compose.prod.yml --env-file .env up -d --build
+```
+
+Чтобы удалить том Postgres, сначала остановите стек (`down`), иначе `docker volume rm metalcard_db_data` вернёт «volume is in use».
+
 ### 3) Переменные окружения
 
 ```bash
