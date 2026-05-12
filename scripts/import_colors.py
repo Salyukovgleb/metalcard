@@ -123,14 +123,25 @@ COLORS_DATA = [
 
 
 def ensure_table(conn):
-    """Проверка наличия таблицы colors."""
+    """Проверка наличия таблицы public.colors (схема Next.js)."""
     with conn.cursor() as cur:
-        cur.execute("""
+        cur.execute(
+            """
             SELECT column_name FROM information_schema.columns
-            WHERE table_name='colors'
-        """)
+            WHERE table_schema = 'public' AND table_name = 'colors'
+            """
+        )
         cols = {r[0] for r in cur.fetchall()}
         required = {"id", "code", "title", "markup", "params", "active"}
+        if not cols:
+            raise RuntimeError(
+                "Таблица public.colors не найдена — в БД нет схемы Next (или не та база). "
+                "Накатите init SQL с хоста: "
+                "./scripts/apply_metalcard_db_init.sh "
+                "или вручную: "
+                "docker exec -i metalcard_db psql -U … -d … < metalcard_db/init/01_schema.sql "
+                "(затем 02, 03). Либо пересоздайте Docker-том Postgres для автозапуска init."
+            )
         missing = required - cols
         if missing:
             raise RuntimeError(f"colors table missing required columns: {missing}")

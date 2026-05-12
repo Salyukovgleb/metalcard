@@ -53,3 +53,14 @@ You should see `designs`, `colors`, `promos`, `orders`, `order_items`, `payments
 - The init SQL runs only on a fresh data directory (standard Postgres behavior).
 - Change credentials/port in `docker-compose.yml` if needed.
 - Persisted data lives in `metalcard_db/data/`.
+
+## Уже поднятый Postgres в Docker (нет таблицы colors)
+
+Если контейнер `metalcard_db` работает, но импорт пишет «colors не найдена» — init из `init/` не выполнялся на этом томе (старый кластер или другая схема). С хоста, из корня репозитория:
+
+```bash
+chmod +x scripts/apply_metalcard_db_init.sh
+./scripts/apply_metalcard_db_init.sh
+```
+
+Нужны переменные `DB_USER`, `DB_NAME`, `DB_PASSWORD` в `.env` (как у `docker-compose`). Если `01_schema.sql` упадёт с «already exists», в томе уже частично есть объекты — тогда либо ручная правка, либо новый том БД и чистый `up`.
