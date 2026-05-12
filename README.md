@@ -13,28 +13,32 @@ docker compose up --build -d
 ```
 
 Сервисы:
+
 - сайт: `http://localhost:3000`
 - админка: `http://localhost:3001/login`
 - PostgreSQL: `localhost:5433`
 
-## Production deploy (85.198.85.90)
+## Production deploy (89.39.94.222)
 
 Целевые домены:
+
 - `metalcards.uz` (и `www.metalcards.uz`) — сайт
 - `admin.metalcards.uz` — админка
 - `paycom.metalcards.uz` — endpoint оплаты/callback Payme
 
 Рекомендуемые URL в кабинете Paycom:
+
 - Merchant API: `https://paycom.metalcards.uz/paycom/`
 - Callback: `https://paycom.metalcards.uz/`
 
 ### 1) DNS
 
 Проверьте A-записи:
-- `metalcards.uz` -> `85.198.85.90`
-- `www.metalcards.uz` -> `85.198.85.90`
-- `admin.metalcards.uz` -> `85.198.85.90`
-- `paycom.metalcards.uz` -> `85.198.85.90`
+
+- `metalcards.uz` -> `89.39.94.222`
+- `www.metalcards.uz` -> `89.39.94.222`
+- `admin.metalcards.uz` -> `89.39.94.222`
+- `paycom.metalcards.uz` -> `89.39.94.222`
 
 ### 2) Подготовка сервера
 
@@ -78,6 +82,7 @@ docker compose -f docker-compose.prod.yml --env-file .env up -d --build
 ```
 
 После запуска:
+
 - сайт: `https://metalcards.uz`
 - админка: `https://admin.metalcards.uz/login`
 
@@ -107,3 +112,4 @@ docker compose -f docker-compose.prod.yml logs -f admin
 - S3 выгрузка управляется переменными:
   - `BACKUP_S3_ENABLED`
   - `S3_ENDPOINT_URL`, `S3_BUCKET`, `S3_ACCESS_KEY`, `S3_SECRET_KEY`
+

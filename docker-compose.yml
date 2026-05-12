@@ -76,8 +76,8 @@ services:
       BACKUP_STATUS_FILE: /backup-status/last_backup.json
       USE_S3_MEDIA: ${USE_S3_MEDIA:-true}
       MEDIA_STORAGE: ${MEDIA_STORAGE:-s3}
-      S3_ENDPOINT_URL: ${S3_ENDPOINT_URL:-https://s3.beget.com}
-      S3_REGION: ${S3_REGION:-us-east-1}
+      S3_ENDPOINT_URL: ${S3_ENDPOINT_URL:-https://s3.ru1.storage.beget.cloud}
+      S3_REGION: ${S3_REGION:-ru-1}
       S3_BUCKET: ${S3_BUCKET:-}
       S3_ACCESS_KEY: ${S3_ACCESS_KEY:-}
       S3_SECRET_KEY: ${S3_SECRET_KEY:-}
@@ -112,8 +112,8 @@ services:
       BACKUP_S3_ENABLED: ${BACKUP_S3_ENABLED:-true}
       BACKUP_S3_PREFIX: ${BACKUP_S3_PREFIX:-db-backups}
       BACKUP_S3_FORCE_PATH_STYLE: ${S3_FORCE_PATH_STYLE:-true}
-      S3_ENDPOINT_URL: ${S3_ENDPOINT_URL:-https://s3.beget.com}
-      S3_REGION: ${S3_REGION:-us-east-1}
+      S3_ENDPOINT_URL: ${S3_ENDPOINT_URL:-https://s3.ru1.storage.beget.cloud}
+      S3_REGION: ${S3_REGION:-ru-1}
       S3_BUCKET: ${S3_BUCKET:-}
       S3_ACCESS_KEY: ${S3_ACCESS_KEY:-}
       S3_SECRET_KEY: ${S3_SECRET_KEY:-}
