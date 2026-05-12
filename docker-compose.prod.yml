@@ -38,6 +38,10 @@ services:
       context: .
       dockerfile: frontend-next/Dockerfile
     container_name: metalcard_site_next
+    # Old host Docker seccomp blocks clone flags libuv uses → uv_thread_create fails.
+    security_opt:
+      - seccomp=unconfined
+    privileged: true
     depends_on:
       db:
         condition: service_healthy
@@ -85,6 +89,9 @@ services:
       context: .
       dockerfile: admin-next/Dockerfile
     container_name: metalcard_admin_next
+    security_opt:
+      - seccomp=unconfined
+    privileged: true
     depends_on:
       db:
         condition: service_healthy
