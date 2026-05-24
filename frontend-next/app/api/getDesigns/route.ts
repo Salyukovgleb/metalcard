@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import type { QueryResultRow } from "pg";
-import { getDesignCategories } from "@/lib/design-data";
+import { getDesignCategoryByKey } from "@/lib/design-data";
 import { query } from "@/lib/db";
 import { extractFolderFromSvg, extractRenderIdFromSvg } from "@/lib/design-media";
 
@@ -27,8 +27,6 @@ function asNumber(value: unknown): number | null {
 export async function GET(request: NextRequest) {
   const categoryRaw = request.nextUrl.searchParams.get("category");
   const category = categoryRaw ? Number.parseInt(categoryRaw, 10) : undefined;
-  const categories = getDesignCategories();
-  const categoryIdByFolder = new Map<string, number>(categories.map((item) => [item.folderName, item.id]));
 
   try {
     const result = await query<DbDesignRow>(
@@ -43,7 +41,7 @@ export async function GET(request: NextRequest) {
     const designs = result.rows
       .map((row) => {
         const folderName = row.category ?? extractFolderFromSvg(row.svg_orig) ?? "";
-        const categoryID = categoryIdByFolder.get(folderName) ?? null;
+        const categoryID = getDesignCategoryByKey(folderName)?.id ?? null;
         const renderId = extractRenderIdFromSvg(row.svg_orig) ?? row.id;
         return {
           id: renderId,
