@@ -98,6 +98,7 @@ type DbStoredOrderRow = QueryResultRow & {
   design_id: number | null;
   texts: unknown;
   options: unknown;
+  category: string | null;
   svg_orig: string | null;
 };
 
@@ -374,7 +375,7 @@ function toStoredOrder(row: DbStoredOrderRow): StoredOrder {
     bigChip: asBool(options.bigChip ?? options.big_chip),
     delivery: normalizeDelivery(deliveryRaw),
     design: extractRenderIdFromSvg(row.svg_orig) ?? row.design_id ?? undefined,
-    folderName: extractFolderFromSvg(row.svg_orig),
+    folderName: row.category ?? extractFolderFromSvg(row.svg_orig),
     orderData: {
       cardAData: normalizeCardLines(texts.A),
       cardBData: normalizeCardLines(texts.B),
@@ -402,6 +403,7 @@ async function findStoredOrderByWhere(whereSql: string, params: readonly unknown
         oi.design_id,
         oi.texts,
         oi.options,
+        d.category,
         d.svg_orig
       FROM orders o
       LEFT JOIN promos p ON p.id = o.promo_id
@@ -597,7 +599,7 @@ export async function createOrder(input: CreateOrderInput): Promise<StoredOrder>
       logoDeactive: Boolean(payload.logoDeactive),
       bigChip: Boolean(payload.bigChip),
       delivery: deliveryRaw,
-      folderName: extractFolderFromSvg(design.svg_orig),
+      folderName: design.category ?? extractFolderFromSvg(design.svg_orig),
       orderData: {
         cardAData: normalizeCardLines(payload.cardAData),
         cardBData: normalizeCardLines(payload.cardBData),

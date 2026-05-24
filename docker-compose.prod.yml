@@ -60,6 +60,7 @@ services:
       TELEGRAM_API_URL: ${TELEGRAM_API_URL:-}
     volumes:
       - site_data:/app/frontend-next/.data
+      - admin_uploads:/app/frontend-next/public/uploads:ro
     healthcheck:
       test:
         [

@@ -51,6 +51,7 @@ services:
       TELEGRAM_API_URL: ${TELEGRAM_API_URL:-}
     volumes:
       - ./frontend-next/.data:/app/frontend-next/.data
+      - ./admin-next/public/uploads:/app/frontend-next/public/uploads:ro
     restart: unless-stopped
 
   admin:
