@@ -628,7 +628,7 @@ export default async function DefaultDesignPage({ locale, searchParams }: Props)
         {defaultColorNameJSON}
       </div>
 
-      <Script src={`/design/${locale}.js?ver=19`} strategy="afterInteractive" />
+      <Script src={`/design/${locale}.js?ver=20`} strategy="afterInteractive" />
       <Script src="/design/editor-fixes.js?ver=2" strategy="afterInteractive" />
       <OrderLegalGuard />
     </>
