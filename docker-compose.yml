@@ -51,6 +51,7 @@ services:
       TELEGRAM_API_URL: ${TELEGRAM_API_URL:-}
     volumes:
       - ./frontend-next/.data:/app/frontend-next/.data
+      - ./frontend-next/origs:/app/frontend-next/origs:ro
       - ./admin-next/public/uploads:/app/frontend-next/public/uploads:ro
     restart: unless-stopped
 
@@ -87,6 +88,7 @@ services:
       S3_FORCE_PATH_STYLE: ${S3_FORCE_PATH_STYLE:-true}
     volumes:
       - backup_status:/backup-status:ro
+      - ./frontend-next/origs:/app/frontend-next/origs
       - ./admin-next/public/uploads:/app/admin-next/public/uploads
     restart: unless-stopped
 

@@ -1,125 +1,91 @@
 import crypto from "node:crypto";
 import fs from "node:fs/promises";
 import path from "node:path";
-import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 
-function asBool(value: string | undefined, fallback = false): boolean {
-  if (!value) {
-    return fallback;
+type UploadSvgOptions = {
+  category: string;
+  currentSvg?: string;
+};
+
+const SAFE_CATEGORY_RE = /^[a-zA-Z0-9_-]+$/;
+const SAFE_FILENAME_RE = /^[a-zA-Z0-9._-]+\.svg$/i;
+
+function normalizeCategory(category: string): string {
+  const normalized = category.trim().replaceAll("\\", "/").replace(/^\/+|\/+$/g, "");
+  if (!normalized || normalized.includes("/") || !SAFE_CATEGORY_RE.test(normalized)) {
+    throw new Error("Укажите категорию папки латиницей, цифрами, дефисом или подчеркиванием");
   }
-  return ["1", "true", "yes", "on"].includes(value.trim().toLowerCase());
+  return normalized;
 }
 
-function normalizeBaseUrl(value: string): string {
-  return value.replace(/\/$/, "");
+function sanitizeSvgFilename(fileName: string): string {
+  const parsed = path.parse(fileName.trim().replaceAll("\\", "/"));
+  const base = parsed.name
+    .normalize("NFKD")
+    .replace(/[^\w.-]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 80);
+
+  return `${base || crypto.randomUUID()}.svg`;
 }
 
-function s3Enabled(): boolean {
-  return asBool(process.env.USE_S3_MEDIA, false) || (process.env.MEDIA_STORAGE ?? "").trim().toLowerCase() === "s3";
-}
-
-function s3Bucket(): string {
-  return (
-    process.env.S3_BUCKET ?? process.env.AWS_STORAGE_BUCKET_NAME ?? process.env.AWS_BUCKET_NAME ?? ""
-  ).trim();
-}
-
-function s3Endpoint(): string {
-  return (
-    process.env.S3_ENDPOINT_URL ?? process.env.AWS_S3_ENDPOINT_URL ?? process.env.AWS_ENDPOINT_URL ?? ""
-  ).trim();
-}
-
-function s3ForcePathStyle(): boolean {
-  const explicit = process.env.S3_FORCE_PATH_STYLE;
-  if (typeof explicit === "string") {
-    return asBool(explicit, true);
-  }
-
-  return (process.env.AWS_S3_ADDRESSING_STYLE ?? "path").trim() === "path";
-}
-
-function createS3Client(): S3Client {
-  const accessKeyId = (process.env.S3_ACCESS_KEY ?? process.env.AWS_ACCESS_KEY_ID ?? "").trim();
-  const secretAccessKey = (process.env.S3_SECRET_KEY ?? process.env.AWS_SECRET_ACCESS_KEY ?? "").trim();
-
-  if (!accessKeyId || !secretAccessKey) {
-    throw new Error("S3 credentials are not configured");
+function staticSvgFilename(currentSvg: string | undefined, category: string): string | null {
+  const normalized = (currentSvg ?? "").split("#")[0]?.split("?")[0]?.replaceAll("\\", "/").trim() ?? "";
+  const parts = normalized.split("/").filter(Boolean);
+  if (parts.length < 3 || parts[0] !== "static" || parts[1] !== category) {
+    return null;
   }
 
-  const endpoint = s3Endpoint();
-  if (!endpoint) {
-    throw new Error("S3 endpoint is not configured");
-  }
-
-  return new S3Client({
-    region: (process.env.S3_REGION ?? process.env.AWS_S3_REGION_NAME ?? "us-east-1").trim(),
-    endpoint,
-    forcePathStyle: s3ForcePathStyle(),
-    credentials: {
-      accessKeyId,
-      secretAccessKey,
-    },
-  });
+  const fileName = parts[2] ?? "";
+  return SAFE_FILENAME_RE.test(fileName) ? fileName : null;
 }
 
-function buildS3PublicUrl(key: string): string {
-  const explicitPublicBase = (process.env.S3_PUBLIC_BASE_URL ?? process.env.MEDIA_CDN_URL ?? "").trim();
-  if (explicitPublicBase) {
-    return `${normalizeBaseUrl(explicitPublicBase)}/${key}`;
+async function resolveOrigsRoot(): Promise<string> {
+  const explicit = (process.env.PRINTS_ORIGS_DIR ?? "").trim();
+  if (explicit) {
+    return path.resolve(explicit);
   }
 
-  const endpoint = normalizeBaseUrl(s3Endpoint());
-  const bucket = s3Bucket();
-  if (!endpoint || !bucket) {
-    return key;
+  const candidates = [
+    path.resolve(process.cwd(), "../frontend-next/origs"),
+    path.resolve(process.cwd(), "frontend-next/origs"),
+    path.resolve(process.cwd(), "origs"),
+  ];
+
+  for (const candidate of candidates) {
+    try {
+      const stat = await fs.stat(candidate);
+      if (stat.isDirectory()) {
+        return candidate;
+      }
+    } catch {
+      // Keep looking for the shared prints folder.
+    }
   }
 
-  if (s3ForcePathStyle()) {
-    return `${endpoint}/${bucket}/${key}`;
-  }
-
-  const withoutScheme = endpoint.replace(/^https?:\/\//, "");
-  return `https://${bucket}.${withoutScheme}/${key}`;
+  return candidates[0];
 }
 
-async function uploadSvgToS3(file: File): Promise<string> {
-  const bucket = s3Bucket();
-  if (!bucket) {
-    throw new Error("S3 bucket is not configured");
+async function uniqueFilename(targetDir: string, preferredName: string): Promise<string> {
+  if (!SAFE_FILENAME_RE.test(preferredName)) {
+    preferredName = `${crypto.randomUUID()}.svg`;
   }
 
-  const prefix = (process.env.S3_PREFIX ?? process.env.AWS_LOCATION ?? "media").replace(/^\/+|\/+$/g, "");
-  const filename = `${crypto.randomUUID()}.svg`;
-  const key = `${prefix}/designs/${filename}`;
+  const parsed = path.parse(preferredName);
+  for (let index = 0; index < 1000; index += 1) {
+    const suffix = index === 0 ? "" : `-${index}`;
+    const candidate = `${parsed.name}${suffix}.svg`;
+    try {
+      await fs.access(path.join(targetDir, candidate));
+    } catch {
+      return candidate;
+    }
+  }
 
-  const body = Buffer.from(await file.arrayBuffer());
-  const client = createS3Client();
-
-  await client.send(
-    new PutObjectCommand({
-      Bucket: bucket,
-      Key: key,
-      Body: body,
-      ContentType: "image/svg+xml",
-    }),
-  );
-
-  return buildS3PublicUrl(key);
+  return `${parsed.name}-${crypto.randomUUID()}.svg`;
 }
 
-async function uploadSvgLocally(file: File): Promise<string> {
-  const filename = `${crypto.randomUUID()}.svg`;
-  const targetDir = path.resolve(process.cwd(), "public", "uploads", "designs");
-  await fs.mkdir(targetDir, { recursive: true });
-
-  const targetPath = path.join(targetDir, filename);
-  await fs.writeFile(targetPath, Buffer.from(await file.arrayBuffer()));
-
-  return `/uploads/designs/${filename}`;
-}
-
-export async function uploadSvg(file: File): Promise<string> {
+export async function uploadSvg(file: File, options: UploadSvgOptions): Promise<string> {
   if (!file.name.toLowerCase().endsWith(".svg")) {
     throw new Error("Требуется SVG файл");
   }
@@ -127,9 +93,15 @@ export async function uploadSvg(file: File): Promise<string> {
     throw new Error("SVG файл больше 5MB");
   }
 
-  if (s3Enabled()) {
-    return uploadSvgToS3(file);
-  }
+  const category = normalizeCategory(options.category);
+  const origsRoot = await resolveOrigsRoot();
+  const targetDir = path.join(origsRoot, category);
+  await fs.mkdir(targetDir, { recursive: true });
 
-  return uploadSvgLocally(file);
+  const currentName = staticSvgFilename(options.currentSvg, category);
+  const filename = currentName ?? (await uniqueFilename(targetDir, sanitizeSvgFilename(file.name)));
+  const targetPath = path.join(targetDir, filename);
+  await fs.writeFile(targetPath, Buffer.from(await file.arrayBuffer()));
+
+  return `/static/${category}/${filename}`;
 }

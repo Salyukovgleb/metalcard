@@ -224,6 +224,53 @@ label {
   margin-bottom: 12px;
 }
 
+.field-hint {
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.advanced-fields {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  margin: 4px 0 14px;
+  padding: 10px 12px;
+}
+
+.advanced-fields summary {
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 700;
+  color: #38506f;
+}
+
+.advanced-fields[open] summary {
+  margin-bottom: 12px;
+}
+
+.current-print-preview {
+  display: grid;
+  gap: 8px;
+  align-items: start;
+}
+
+.current-print-preview img {
+  max-width: 360px;
+  max-height: 220px;
+  object-fit: contain;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #f7f9fc;
+  padding: 10px;
+}
+
+.current-print-preview code {
+  color: var(--muted);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
 .login-wrap {
   min-height: 100vh;
   display: grid;

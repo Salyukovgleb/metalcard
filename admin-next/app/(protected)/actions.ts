@@ -158,13 +158,13 @@ export async function createDesignAction(formData: FormData): Promise<void> {
   let svgOrig = asText(formData.get("svg_orig"));
   if (svgFile instanceof File && svgFile.size > 0) {
     try {
-      svgOrig = await uploadSvg(svgFile);
+      svgOrig = await uploadSvg(svgFile, { category });
     } catch {
       redirect("/designs/new?error=upload");
     }
   }
 
-  if (!title || !svgOrig) {
+  if (!title || !category || !svgOrig) {
     redirect("/designs/new?error=1");
   }
 
@@ -203,7 +203,7 @@ export async function updateDesignAction(formData: FormData): Promise<void> {
   let svgOrig = asText(formData.get("svg_orig"));
   if (svgFile instanceof File && svgFile.size > 0) {
     try {
-      svgOrig = await uploadSvg(svgFile);
+      svgOrig = await uploadSvg(svgFile, { category, currentSvg });
     } catch {
       redirect(`/designs/${id}/edit?error=upload`);
     }
@@ -212,7 +212,7 @@ export async function updateDesignAction(formData: FormData): Promise<void> {
     svgOrig = currentSvg;
   }
 
-  if (!title || !svgOrig) {
+  if (!title || !category || !svgOrig) {
     redirect(`/designs/${id}/edit?error=1`);
   }
 

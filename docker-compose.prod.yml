@@ -60,6 +60,7 @@ services:
       TELEGRAM_API_URL: ${TELEGRAM_API_URL:-}
     volumes:
       - site_data:/app/frontend-next/.data
+      - ./frontend-next/origs:/app/frontend-next/origs:ro
       - admin_uploads:/app/frontend-next/public/uploads:ro
     healthcheck:
       test:
@@ -110,6 +111,7 @@ services:
       S3_FORCE_PATH_STYLE: ${S3_FORCE_PATH_STYLE:-true}
     volumes:
       - backup_status:/backup-status:ro
+      - ./frontend-next/origs:/app/frontend-next/origs
       - admin_uploads:/app/admin-next/public/uploads
     healthcheck:
       test:
