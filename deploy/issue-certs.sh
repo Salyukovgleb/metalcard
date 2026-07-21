@@ -13,15 +13,30 @@ if [ ! -f "${ENV_PATH}" ]; then
   exit 1
 fi
 
-# shellcheck disable=SC1090
-set -a
-. "${ENV_PATH}"
-set +a
+read_env_value() {
+  awk -v key="$1" '
+    index($0, key "=") == 1 {
+      value = substr($0, length(key) + 2)
+    }
+    END {
+      sub(/\r$/, "", value)
+      if ((substr(value, 1, 1) == "\"" && substr(value, length(value), 1) == "\"") ||
+          (substr(value, 1, 1) == "\047" && substr(value, length(value), 1) == "\047")) {
+        value = substr(value, 2, length(value) - 2)
+      }
+      print value
+    }
+  ' "${ENV_PATH}"
+}
+
+SITE_DOMAIN="$(read_env_value SITE_DOMAIN)"
+ADMIN_DOMAIN="$(read_env_value ADMIN_DOMAIN)"
+PAYCOM_DOMAIN="$(read_env_value PAYCOM_DOMAIN)"
+LETSENCRYPT_EMAIL="$(read_env_value LETSENCRYPT_EMAIL)"
 
 SITE_DOMAIN="${SITE_DOMAIN:-metalcards.uz}"
 ADMIN_DOMAIN="${ADMIN_DOMAIN:-admin.metalcards.uz}"
 PAYCOM_DOMAIN="${PAYCOM_DOMAIN:-paycom.metalcards.uz}"
-LETSENCRYPT_EMAIL="${LETSENCRYPT_EMAIL:-}"
 
 if [ -z "${LETSENCRYPT_EMAIL}" ]; then
   echo "LETSENCRYPT_EMAIL is empty in ${ENV_FILE}"
