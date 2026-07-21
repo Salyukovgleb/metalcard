@@ -10,6 +10,8 @@
 **/dist
 **/build
 **/coverage
+**/__pycache__/
+**/*.py[cod]
 
 # Logs
 **/npm-debug.log*
@@ -21,3 +23,9 @@
 .env
 .env.local
 .env.*.local
+
+# Local runtime data
+metalcard_db/
+
+# Private security audit reports (the repository is public)
+docs/security/

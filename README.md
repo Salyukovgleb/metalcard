@@ -17,7 +17,7 @@ docker compose up --build -d
 - админка: `http://localhost:3001/login`
 - PostgreSQL: `localhost:5433`
 
-## Production deploy (85.198.85.90)
+## Production deploy (159.194.235.104)
 
 Целевые домены:
 - `metalcards.uz` (и `www.metalcards.uz`) — сайт
@@ -31,10 +31,10 @@ docker compose up --build -d
 ### 1) DNS
 
 Проверьте A-записи:
-- `metalcards.uz` -> `85.198.85.90`
-- `www.metalcards.uz` -> `85.198.85.90`
-- `admin.metalcards.uz` -> `85.198.85.90`
-- `paycom.metalcards.uz` -> `85.198.85.90`
+- `metalcards.uz` -> `159.194.235.104`
+- `www.metalcards.uz` -> `159.194.235.104`
+- `admin.metalcards.uz` -> `159.194.235.104`
+- `paycom.metalcards.uz` -> `159.194.235.104`
 
 ### 2) Подготовка сервера
 
