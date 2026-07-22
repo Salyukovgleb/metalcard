@@ -26,6 +26,7 @@
 
 # Local runtime data
 metalcard_db/
+.bootstrap-backups/
 
 # Private security audit reports (the repository is public)
 docs/security/
