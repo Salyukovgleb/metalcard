@@ -82,11 +82,11 @@ const ruItems: Omit<BenefitItem, "image" | "imageWebp" | "image2x" | "imageWebp2
   },
   {
     key: "payme",
-    title: "Оплата через",
-    highlighted: "Payme",
+    title: "Удобное",
+    highlighted: "оформление",
     paragraphs: [
-      "Тебе нужно будет приехать к нам в офис всего 2 раза: привезти карту и забрать ее обратно.",
-      "Мы принимаем оплату через Payme.",
+      "Создай дизайн и оформи заказ прямо на сайте.",
+      "Наш менеджер свяжется с тобой и уточнит все детали.",
     ],
     altRu: "Корзина",
     altUz: "Savat",
@@ -157,11 +157,11 @@ const uzItems: Omit<BenefitItem, "image" | "imageWebp" | "image2x" | "imageWebp2
   },
   {
     key: "payme",
-    title: "Payme orqali",
-    highlighted: "to‘lov",
+    title: "Qulay",
+    highlighted: "buyurtma",
     paragraphs: [
-      "Ofisimizga atigi 2 marta kelib ketishingiz kerak bo‘ladi.",
-      "Qolgan barcha ishlar onlayn amalga oshiriladi.",
+      "Dizayn yarating va buyurtmani saytda rasmiylashtiring.",
+      "Menejerimiz siz bilan bog‘lanib, barcha tafsilotlarni aniqlashtiradi.",
     ],
     altRu: "Корзина",
     altUz: "Savat",

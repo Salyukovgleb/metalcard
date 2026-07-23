@@ -74,10 +74,8 @@ const t = {
     pickup: "Самовывоз (Осие, 16)",
     toPay: "к оплате",
     confirmOrder: "подтвердить заказ",
-    orderPayment: "Оплата заказа",
-    payVia: "оплатить через",
-    paymeButton: "оплатить через",
-    payCash: "оплатить наличными",
+    orderPayment: "Способ оплаты",
+    payCash: "Наличными при получении",
     cancel: "отменить заказ",
     cashOnly1: "Оплата наличными",
     cashOnly2: "для любого способа получения",
@@ -131,10 +129,8 @@ const t = {
     pickup: "Ofisdan olib ketish(Geydar Alieva 93)",
     toPay: "to'lash",
     confirmOrder: "buyurtmani tasdiqlang",
-    orderPayment: "To’lov turlari",
-    payVia: "orqali to'lash",
-    paymeButton: "Payme",
-    payCash: "Naqd pul",
+    orderPayment: "To’lov usuli",
+    payCash: "Qabul qilganda naqd pul",
     cancel: "buyurtmani bekor qilish",
     cashOnly1: "naqd to'lov",
     cashOnly2: "har qanday qabul qilish usuli uchun",
@@ -576,15 +572,9 @@ export default async function DefaultDesignPage({ locale, searchParams }: Props)
           <div className="form-payme form-payme__hidden">
             <h2 className="form-payme__header">{text.orderPayment}</h2>
 
-            <button className="form-payme__buy-btn" id="form-payme-link-click">
-              <span>{text.payVia}</span>
-              <img src="/images/click.svg" alt="Click logo" />
-            </button>
-
-            <button className="form-payme__buy-btn" id="form-payme-link-payme">
-              <span>{text.paymeButton}</span>
-              <img src="/images/payme.svg" alt="PayMe logo" />
-            </button>
+            {/* Legacy client code expects these nodes. Keep them hidden while card payments are disabled in the UI. */}
+            <button className="form-payme__buy-btn" id="form-payme-link-click" type="button" hidden aria-hidden="true" tabIndex={-1} />
+            <button className="form-payme__buy-btn" id="form-payme-link-payme" type="button" hidden aria-hidden="true" tabIndex={-1} />
 
             <button className="form-payme__buy-btn" id="form-payme-link-cache">
               <span>{text.payCash}</span>

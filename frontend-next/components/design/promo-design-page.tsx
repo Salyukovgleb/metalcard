@@ -68,10 +68,8 @@ const text = {
     pickup: "Самовывоз (Осие, 16)",
     toPay: "к оплате",
     confirmOrder: "подтвердить заказ",
-    payment: "Оплата заказа",
-    payVia: "оплатить через",
-    paymeButton: "оплатить через",
-    cash: "оплатить наличными",
+    payment: "Способ оплаты",
+    cash: "Наличными при получении",
     cancel: "отменить заказ",
     acceptPrivacyPrefix: "Я принимаю",
     acceptPrivacyLink: "политику конфиденциальности",
@@ -115,10 +113,8 @@ const text = {
     pickup: "Ofisdan olib ketish(Geydar Alieva 93)",
     toPay: "to'lash",
     confirmOrder: "buyurtmani tasdiqlang",
-    payment: "To’lov turlari",
-    payVia: "orqali to'lash",
-    paymeButton: "Payme",
-    cash: "Naqd pul",
+    payment: "To’lov usuli",
+    cash: "Qabul qilganda naqd pul",
     cancel: "buyurtmani bekor qilish",
     acceptPrivacyPrefix: "Men",
     acceptPrivacyLink: "maxfiylik siyosatini",
@@ -460,8 +456,6 @@ export default async function DesignPromoPage({ locale, promoSlug, searchParams 
             <p className="confirm-pre-price">{copy.toPay}</p>
             <p className="confirm-price">{Math.round(promo.promoPrice).toLocaleString("ru-RU")}</p>
 
-            {locale === "uz" ? <img className="confirm-pay-me-img" src="/images/payme.svg" alt="PayMe" /> : null}
-
             <button className="confirm-pay-me-btn" id="payme-form-create-order">
               <span>{copy.confirmOrder}</span>
             </button>
@@ -470,15 +464,9 @@ export default async function DesignPromoPage({ locale, promoSlug, searchParams 
           <div className="form-payme form-payme__hidden">
             <h2 className="form-payme__header">{copy.payment}</h2>
 
-            <button className="form-payme__buy-btn" id="form-payme-link-click">
-              <span>{copy.payVia}</span>
-              <img src="/images/click.svg" alt="Click" />
-            </button>
-
-            <button className="form-payme__buy-btn" id="form-payme-link-payme">
-              <span>{copy.paymeButton}</span>
-              <img src="/images/payme.svg" alt="PayMe" />
-            </button>
+            {/* Legacy client code expects these nodes. Keep them hidden while card payments are disabled in the UI. */}
+            <button className="form-payme__buy-btn" id="form-payme-link-click" type="button" hidden aria-hidden="true" tabIndex={-1} />
+            <button className="form-payme__buy-btn" id="form-payme-link-payme" type="button" hidden aria-hidden="true" tabIndex={-1} />
 
             <button className="form-payme__buy-btn" id="form-payme-link-cache">
               <span>{copy.cash}</span>
