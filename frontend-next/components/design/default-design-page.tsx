@@ -572,6 +572,13 @@ export default async function DefaultDesignPage({ locale, searchParams }: Props)
           <div className="form-payme form-payme__hidden">
             <h2 className="form-payme__header">{text.orderPayment}</h2>
 
+            <style>{`
+              #form-payme-link-click,
+              #form-payme-link-payme {
+                display: none !important;
+              }
+            `}</style>
+
             {/* Legacy client code expects these nodes. Keep them hidden while card payments are disabled in the UI. */}
             <button className="form-payme__buy-btn" id="form-payme-link-click" type="button" hidden aria-hidden="true" tabIndex={-1} />
             <button className="form-payme__buy-btn" id="form-payme-link-payme" type="button" hidden aria-hidden="true" tabIndex={-1} />
